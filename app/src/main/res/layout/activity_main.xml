@@ -6,13 +6,47 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <Button
+        android:id="@+id/buttonSummary"
+        android:layout_width="283dp"
+        android:layout_height="93dp"
+        android:layout_marginTop="12dp"
+        android:text="@string/button_summary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonEnterIncome" />
+
+    <Button
+        android:id="@+id/buttonEnterIncome"
+        android:layout_width="283dp"
+        android:layout_height="93dp"
+        android:layout_marginTop="12dp"
+        android:text="@string/button_enter_income"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/buttonEnterExpense" />
+
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
+        android:id="@+id/headerTextView"
+        android:layout_width="275dp"
+        android:layout_height="104dp"
+        android:layout_marginTop="16dp"
+        android:gravity="center"
+        android:text="@string/header_my_finance"
+        android:textAllCaps="true"
+        app:autoSizeTextType="uniform"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/buttonEnterExpense"
+        android:layout_width="283dp"
+        android:layout_height="93dp"
+        android:layout_marginTop="28dp"
+        android:text="@string/button_enter_expense"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/headerTextView" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

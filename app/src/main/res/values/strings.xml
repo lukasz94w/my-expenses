@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">MyExpenses</string>
+    <string name="header_my_finance">Moje finanse</string>
+    <string name="button_enter_expense">Wprowadź wydatek</string>
+    <string name="button_enter_income">Wprowadź przychód</string>
+    <string name="button_summary">Podsumowanie</string>
 </resources>
