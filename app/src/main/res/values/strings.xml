@@ -4,4 +4,11 @@
     <string name="button_enter_expense">Wprowadź wydatek</string>
     <string name="button_enter_income">Wprowadź przychód</string>
     <string name="button_summary">Podsumowanie</string>
+    <string name="header_enter_expense">Wprowadź wydatek</string>
+    <string name="amount">Kwota:</string>
+    <string name="category">Kategoria:</string>
+    <string name="accept_expense">Zatwierdź</string>
+    <string name="header_enter_income">Wprowadź dochód</string>
+    <string name="name">Nazwa:</string>
+    <string name="date">Data:</string>
 </resources>
