@@ -6,9 +6,6 @@ import androidx.cardview.widget.CardView;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
@@ -31,26 +28,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         summary = findViewById(R.id.summary);
         summary.setOnClickListener(this);
-
-
-//        Button buttonEnterIncome = findViewById(R.id.enterIncome);
-//        Button buttonSummary = findViewById(R.id.enterSummary);
-//
-//        expense.setOnClickListener(v -> {
-//            Intent intent = new Intent(MainActivity.this, ExpenseActivity.class);
-//            startActivity(intent);
-//        });
-//
-//        buttonEnterIncome.setOnClickListener(v -> {
-//            Intent intent = new Intent(MainActivity.this, IncomeActivity.class);
-//            startActivity(intent);
-//        });
-//
-//        buttonSummary.setOnClickListener(v -> {
-//            Intent intent = new Intent(MainActivity.this, SummaryActivity.class);
-//            startActivity(intent);
-//        });
-//
     }
 
     @Override
