@@ -1,14 +1,14 @@
 <resources>
     <string name="app_name">MyExpenses</string>
     <string name="header_my_finance">Moje finanse</string>
-    <string name="button_enter_expense">Wprowadź wydatek</string>
-    <string name="button_enter_income">Wprowadź przychód</string>
-    <string name="button_summary">Podsumowanie</string>
+    <string name="enter_expense">Wydatki</string>
+    <string name="enter_income">Przychody</string>
+    <string name="show_summary">Podsumowanie</string>
     <string name="header_enter_expense">Wprowadź wydatek</string>
-    <string name="amount">Kwota:</string>
-    <string name="category">Kategoria:</string>
-    <string name="accept_expense">Zatwierdź</string>
+    <string name="accept_expense"><b>Zatwierdź</b></string>
     <string name="header_enter_income">Wprowadź dochód</string>
-    <string name="name">Nazwa:</string>
-    <string name="date">Data:</string>
+    <string name="header_summary">Podsumowanie:</string>
+    <string name="period">Okres:</string>
+    <string name="presentation">Format prezentacji:</string>
+    <string name="set_limits">Limity</string>
 </resources>

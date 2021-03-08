@@ -6,85 +6,75 @@
     android:layout_height="match_parent"
     tools:context=".IncomeActivity">
 
+    <include
+        android:id="@+id/tool_bar"
+        layout="@layout/tool_bar" />
+
+    <EditText
+        android:id="@+id/editDateIncome"
+        android:layout_width="212dp"
+        android:layout_height="52dp"
+        android:layout_marginStart="42dp"
+        android:layout_marginTop="36dp"
+        android:ems="10"
+        android:hint="Data"
+        android:inputType="numberDecimal"
+        android:text=""
+        app:autoSizeTextType="uniform"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editAmountIncome" />
+
     <Button
-        android:id="@+id/buttonAcceptExpense2"
-        android:layout_width="283dp"
-        android:layout_height="93dp"
-        android:layout_marginTop="132dp"
+        android:id="@+id/acceptIncomeButton"
+        android:layout_width="145dp"
+        android:layout_height="45dp"
+        android:layout_marginTop="64dp"
+        android:background="@drawable/rounded_button"
         android:text="@string/accept_expense"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/date" />
-
-    <TextView
-        android:id="@+id/date"
-        android:layout_width="147dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="68dp"
-        android:layout_marginTop="32dp"
-        android:text="@string/date"
-        app:autoSizeTextType="uniform"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/amount" />
+        app:layout_constraintTop_toBottomOf="@+id/editDateIncome" />
 
     <EditText
-        android:id="@+id/editAmount2"
-        android:layout_width="111dp"
-        android:layout_height="39dp"
-        android:layout_marginTop="32dp"
-        android:layout_marginEnd="68dp"
+        android:id="@+id/editAmountIncome"
+        android:layout_width="300dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="36dp"
         android:ems="10"
+        android:hint="Kwota"
         android:inputType="numberDecimal"
         android:text=""
         app:autoSizeTextType="uniform"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editName" />
-
-    <TextView
-        android:id="@+id/amount"
-        android:layout_width="147dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="68dp"
-        android:layout_marginTop="32dp"
-        android:text="@string/amount"
-        app:autoSizeTextType="uniform"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/name" />
+        app:layout_constraintTop_toBottomOf="@+id/editNameIncome" />
 
     <EditText
-        android:id="@+id/editName"
-        android:layout_width="111dp"
-        android:layout_height="39dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="68dp"
+        android:id="@+id/editNameIncome"
+        android:layout_width="300dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="36dp"
         android:ems="10"
+        android:hint="Nazwa"
         android:inputType="text"
         android:text=""
         app:autoSizeTextType="uniform"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/headerIncome" />
-
-    <TextView
-        android:id="@+id/name"
-        android:layout_width="147dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="68dp"
-        android:layout_marginTop="20dp"
-        android:text="@string/name"
-        app:autoSizeTextType="uniform"
+        app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/headerIncome" />
+        app:layout_constraintTop_toBottomOf="@+id/tool_bar" />
 
-    <TextView
-        android:id="@+id/headerIncome"
-        android:layout_width="275dp"
-        android:layout_height="104dp"
-        android:layout_marginTop="16dp"
-        android:gravity="center"
-        android:text="@string/header_enter_income"
-        android:textAllCaps="true"
-        app:autoSizeTextType="uniform"
+    <ImageButton
+        android:id="@+id/editDateIncomeButton"
+        android:layout_width="85dp"
+        android:layout_height="67dp"
+        android:layout_marginStart="12dp"
+        android:layout_marginTop="28dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitCenter"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/editDateIncome"
+        app:layout_constraintTop_toBottomOf="@+id/editAmountIncome"
+        app:srcCompat="@drawable/calendar" />
 </androidx.constraintlayout.widget.ConstraintLayout>

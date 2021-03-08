@@ -6,62 +6,106 @@
     android:layout_height="match_parent"
     tools:context=".ExpenseActivity">
 
-    <Button
-        android:id="@+id/buttonAcceptExpense"
-        android:layout_width="283dp"
-        android:layout_height="93dp"
-        android:layout_marginTop="200dp"
-        android:text="@string/accept_expense"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/category" />
-
-    <TextView
-        android:id="@+id/category"
-        android:layout_width="147dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="68dp"
-        android:layout_marginTop="32dp"
-        android:text="@string/category"
-        app:autoSizeTextType="uniform"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/amount" />
+    <include
+        android:id="@+id/tool_bar"
+        layout="@layout/tool_bar" />
 
     <EditText
-        android:id="@+id/editAmount"
-        android:layout_width="111dp"
-        android:layout_height="39dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="24dp"
+        android:id="@+id/editCategoryExpense"
+        android:layout_width="212dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="42dp"
+        android:layout_marginTop="36dp"
         android:ems="10"
-        android:inputType="numberDecimal"
-        app:autoSizeTextType = "uniform"
+        android:hint="Kategoria"
+        android:inputType="text"
         android:text=""
-        app:layout_constraintStart_toEndOf="@+id/amount"
-        app:layout_constraintTop_toBottomOf="@+id/headerTextView" />
+        app:autoSizeTextType="uniform"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editDateExpense" />
 
-    <TextView
-        android:id="@+id/headerTextView"
-        android:layout_width="275dp"
-        android:layout_height="104dp"
-        android:layout_marginTop="16dp"
-        android:gravity="center"
-        android:text="@string/header_enter_expense"
-        android:textAllCaps="true"
+    <EditText
+        android:id="@+id/editDateExpense"
+        android:layout_width="212dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="42dp"
+        android:layout_marginTop="36dp"
+        android:ems="10"
+        android:hint="Data"
+        android:inputType="numberDecimal"
+        android:text=""
+        app:autoSizeTextType="uniform"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editAmountExpense" />
+
+    <EditText
+        android:id="@+id/editNameExpense"
+        android:layout_width="300dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="36dp"
+        android:ems="10"
+        android:hint="Nazwa"
+        android:inputType="text"
+        android:text=""
         app:autoSizeTextType="uniform"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.495"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/tool_bar" />
 
-    <TextView
-        android:id="@+id/amount"
-        android:layout_width="147dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="68dp"
-        android:layout_marginTop="24dp"
-        android:text="@string/amount"
-        app:autoSizeTextType = "uniform"
+    <EditText
+        android:id="@+id/editAmountExpense"
+        android:layout_width="300dp"
+        android:layout_height="50dp"
+        android:layout_marginTop="36dp"
+        android:ems="10"
+        android:hint="Kwota"
+        android:inputType="numberDecimal"
+        android:text=""
+        app:autoSizeTextType="uniform"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.496"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/headerTextView" />
+        app:layout_constraintTop_toBottomOf="@+id/editNameExpense" />
+
+    <Button
+        android:id="@+id/acceptExpenseButton"
+        android:layout_width="145dp"
+        android:layout_height="45dp"
+        android:layout_marginTop="40dp"
+        android:background="@drawable/rounded_button"
+        android:text="@string/accept_expense"
+        android:textSize="15sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editCategoryExpense" />
+
+    <ImageButton
+        android:id="@+id/editDateExpenseButton"
+        android:layout_width="85dp"
+        android:layout_height="67dp"
+        android:layout_marginTop="24dp"
+        android:adjustViewBounds="true"
+        android:background="@android:color/transparent"
+        android:scaleType="fitCenter"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.203"
+        app:layout_constraintStart_toEndOf="@+id/editDateExpense"
+        app:layout_constraintTop_toBottomOf="@+id/editAmountExpense"
+        app:srcCompat="@drawable/calendar" />
+
+    <ImageButton
+        android:id="@+id/editCategoryExpenseButton"
+        android:layout_width="85dp"
+        android:layout_height="67dp"
+        android:layout_marginTop="24dp"
+        android:adjustViewBounds="true"
+        android:background="@android:color/transparent"
+        android:scaleType="fitCenter"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.206"
+        app:layout_constraintStart_toEndOf="@+id/editCategoryExpense"
+        app:layout_constraintTop_toBottomOf="@+id/editDateExpense"
+        app:srcCompat="@drawable/category" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
