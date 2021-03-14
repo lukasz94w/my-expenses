@@ -11,7 +11,15 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+
+import com.example.myexpenses.model.Expense;
+import com.example.myexpenses.model.Income;
+import com.example.myexpenses.repository.ExpenseRepository;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 public class ExpenseActivity extends AppCompatActivity implements View.OnClickListener, View.OnFocusChangeListener {
 
@@ -19,6 +27,7 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
     EditText editNameExpense, editAmountExpense, editDateExpense, editCategoryExpense;
     ImageButton editDateExpenseButton, editCategoryExpenseButton;
     Button acceptExpenseButton;
+    ExpenseRepository expenseRepository;
 
     int LAUNCH_CATEGORY_ACTIVITY = 1;
 
@@ -51,6 +60,8 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
 
         acceptExpenseButton = findViewById(R.id.acceptExpenseButton);
         acceptExpenseButton.setOnClickListener(this);
+
+        expenseRepository = new ExpenseRepository(this);
     }
 
     @Override
@@ -99,7 +110,17 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
                 int day = calendar.get(Calendar.DAY_OF_MONTH);
 
                 DatePickerDialog datePickerDialog = new DatePickerDialog(this, (view, returnedYear, returnedMonth, returnedDayOfMonth) -> {
-                    editDateExpense.setText(returnedDayOfMonth + "/" + returnedMonth + "/" + returnedYear);
+                    returnedMonth = returnedMonth + 1; //months are indexed starting at 0
+                    String yyyy = ""  + returnedYear;
+                    String MM = "" + returnedMonth;
+                    String dd = "" + returnedDayOfMonth;
+                    if (returnedMonth < 10) {
+                        MM = "0" + returnedMonth;
+                    }
+                    if (returnedDayOfMonth < 10) {
+                        dd = "0" + returnedDayOfMonth;
+                    }
+                    editDateExpense.setText(yyyy + "/" + MM + "/" + dd);
                 }, year, month, day);
                 datePickerDialog.show();
                 break;
@@ -108,7 +129,8 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
                 startActivityForResult(intent, LAUNCH_CATEGORY_ACTIVITY);
                 break;
             case R.id.acceptExpenseButton:
-                //TODO implenement logic button
+                expenseRepository.create(new Expense(editNameExpense.getText().toString(), Float.valueOf(editAmountExpense.getText().toString()), editCategoryExpense.getText().toString(),  convertStringToDate(editDateExpense.getText().toString())));
+                break;
             default:
                 break;
         }
@@ -135,5 +157,16 @@ public class ExpenseActivity extends AppCompatActivity implements View.OnClickLi
                 ;
             }
         }
+    }
+
+    public Date convertStringToDate(String dateAsString) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd");
+        Date date = new Date();
+        try {
+            date = format.parse(dateAsString);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return date;
     }
 }

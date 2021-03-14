@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background2"
+    android:background="@drawable/background"
     tools:context=".MainActivity">
 
     <LinearLayout
@@ -31,7 +31,7 @@
             android:rowCount="2">
 
             <androidx.cardview.widget.CardView
-                android:id="@+id/expense"
+                android:id="@+id/income"
                 android:layout_width="110dp"
                 android:layout_height="140dp"
                 android:layout_rowWeight="1"
@@ -70,7 +70,7 @@
             </androidx.cardview.widget.CardView>
 
             <androidx.cardview.widget.CardView
-                android:id="@+id/income"
+                android:id="@+id/expense"
                 android:layout_width="110dp"
                 android:layout_height="140dp"
                 android:layout_rowWeight="1"

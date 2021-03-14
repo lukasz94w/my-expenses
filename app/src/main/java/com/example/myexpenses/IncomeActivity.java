@@ -10,7 +10,14 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+
+import com.example.myexpenses.model.Income;
+import com.example.myexpenses.repository.IncomeRepository;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 public class IncomeActivity extends AppCompatActivity implements View.OnClickListener, View.OnFocusChangeListener{
 
@@ -18,6 +25,7 @@ public class IncomeActivity extends AppCompatActivity implements View.OnClickLis
     EditText editNameIncome, editAmountIncome, editDateIncome;
     ImageButton editDateIncomeButton;
     Button acceptIncomeButton;
+    IncomeRepository incomeRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +50,8 @@ public class IncomeActivity extends AppCompatActivity implements View.OnClickLis
 
         acceptIncomeButton = findViewById(R.id.acceptIncomeButton);
         acceptIncomeButton.setOnClickListener(this);
+
+        incomeRepository = new IncomeRepository(this);
     }
 
     @Override
@@ -85,12 +95,23 @@ public class IncomeActivity extends AppCompatActivity implements View.OnClickLis
                 int day = calendar.get(Calendar.DAY_OF_MONTH);
 
                 DatePickerDialog datePickerDialog = new DatePickerDialog(this, (view, returnedYear, returnedMonth, returnedDayOfMonth) -> {
-                    editDateIncome.setText(returnedDayOfMonth + "/" + returnedMonth + "/" + returnedYear);
+                    returnedMonth = returnedMonth + 1; //months are indexed starting at 0
+                    String yyyy = ""  + returnedYear;
+                    String MM = "" + returnedMonth;
+                    String dd = "" + returnedDayOfMonth;
+                    if (returnedMonth < 10) {
+                        MM = "0" + returnedMonth;
+                    }
+                    if (returnedDayOfMonth < 10) {
+                        dd = "0" + returnedDayOfMonth;
+                    }
+                    editDateIncome.setText(yyyy + "/" + MM + "/" + dd);
                 }, year, month, day);
                 datePickerDialog.show();
                 break;
             case R.id.acceptIncomeButton:
-                //TODO implenement logic button
+                incomeRepository.create(new Income(editNameIncome.getText().toString(), Float.valueOf(editAmountIncome.getText().toString()), convertStringToDate(editDateIncome.getText().toString())));
+                break;
             default:
                 break;
         }
@@ -104,5 +125,16 @@ public class IncomeActivity extends AppCompatActivity implements View.OnClickLis
             }
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public Date convertStringToDate(String dateAsString) {
+        SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd");
+        Date date = new Date();
+        try {
+            date = format.parse(dateAsString);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return date;
     }
 }
