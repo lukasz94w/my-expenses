@@ -1,4 +1,4 @@
-package com.example.myexpenses;
+package com.example.myexpenses.customAdapter;
 
 import android.app.Activity;
 import android.view.LayoutInflater;
@@ -8,22 +8,34 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public class CustomList extends ArrayAdapter<String> {
+import com.example.myexpenses.R;
+
+public class CategoryCustomList extends ArrayAdapter<String> {
     private final Activity context;
     private final String[] categoryName;
     private final Integer[] categoryImageId;
 
-    public CustomList(Activity context, String[] categoryName, Integer[] categoryImageId) {
-        super(context, R.layout.my_list, categoryName);
+    public CategoryCustomList(Activity context, String[] categoryName, Integer[] categoryImageId) {
+        super(context, R.layout.list_category_custom, categoryName);
         this.context = context;
         this.categoryName = categoryName;
         this.categoryImageId = categoryImageId;
     }
 
     @Override
+    public int getCount () {
+        return categoryName.length;
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return position;
+    }
+
+    @Override
     public View getView(int position, View view, ViewGroup parent) {
         LayoutInflater inflater = context.getLayoutInflater();
-        View rowView = inflater.inflate(R.layout.my_list, null, true);
+        View rowView = inflater.inflate(R.layout.list_category_custom, null, true);
 
         TextView txtTitle = rowView.findViewById(R.id.txt);
         ImageView imageView = rowView.findViewById(R.id.img);

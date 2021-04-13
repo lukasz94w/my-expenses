@@ -8,7 +8,7 @@
 
     <include
         android:id="@+id/tool_bar"
-        layout="@layout/tool_bar" />
+        layout="@layout/tool_bar_for_popup_window" />
 
     <EditText
         android:id="@+id/editCategoryExpense"
@@ -74,7 +74,7 @@
         android:layout_height="45dp"
         android:layout_marginTop="40dp"
         android:background="@drawable/rounded_button"
-        android:text="@string/accept_expense"
+        android:text="@string/save_transaction"
         android:textSize="15sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

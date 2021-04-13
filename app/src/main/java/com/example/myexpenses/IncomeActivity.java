@@ -19,7 +19,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-public class IncomeActivity extends AppCompatActivity implements View.OnClickListener, View.OnFocusChangeListener{
+public class IncomeActivity extends AppCompatActivity implements View.OnClickListener, View.OnFocusChangeListener {
 
     private Toolbar toolbar;
     EditText editNameIncome, editAmountIncome, editDateIncome;
@@ -52,11 +52,16 @@ public class IncomeActivity extends AppCompatActivity implements View.OnClickLis
         acceptIncomeButton.setOnClickListener(this);
 
         incomeRepository = new IncomeRepository(this);
+
+        //initialize current date on date picker
+        Calendar calendar = Calendar.getInstance();
+        String currentDateAsString = convertDateToString(calendar.get(Calendar.DAY_OF_MONTH), calendar.get(Calendar.MONTH), calendar.get(Calendar.YEAR));
+        editDateIncome.setText(currentDateAsString);
     }
 
     @Override
     public void onFocusChange(View v, boolean hasFocus) {
-        switch(v.getId()){
+        switch (v.getId()) {
             case R.id.editNameIncome:
                 if (hasFocus) {
                     editNameIncome.setHint("");
@@ -65,18 +70,16 @@ public class IncomeActivity extends AppCompatActivity implements View.OnClickLis
                 }
                 break;
             case R.id.editAmountIncome:
-                if(hasFocus){
+                if (hasFocus) {
                     editAmountIncome.setHint("");
-                }
-                else{
+                } else {
                     editAmountIncome.setHint("Kwota");
                 }
                 break;
             case R.id.editDateIncome:
-                if(hasFocus){
+                if (hasFocus) {
                     editDateIncome.setHint("");
-                }
-                else{
+                } else {
                     editDateIncome.setHint("Data");
                 }
                 break;
@@ -87,7 +90,7 @@ public class IncomeActivity extends AppCompatActivity implements View.OnClickLis
 
     @Override
     public void onClick(View v) {
-        switch(v.getId()){
+        switch (v.getId()) {
             case R.id.editDateIncomeButton:
                 final Calendar calendar = Calendar.getInstance();
                 int year = calendar.get(Calendar.YEAR);
@@ -95,17 +98,8 @@ public class IncomeActivity extends AppCompatActivity implements View.OnClickLis
                 int day = calendar.get(Calendar.DAY_OF_MONTH);
 
                 DatePickerDialog datePickerDialog = new DatePickerDialog(this, (view, returnedYear, returnedMonth, returnedDayOfMonth) -> {
-                    returnedMonth = returnedMonth + 1; //months are indexed starting at 0
-                    String yyyy = ""  + returnedYear;
-                    String MM = "" + returnedMonth;
-                    String dd = "" + returnedDayOfMonth;
-                    if (returnedMonth < 10) {
-                        MM = "0" + returnedMonth;
-                    }
-                    if (returnedDayOfMonth < 10) {
-                        dd = "0" + returnedDayOfMonth;
-                    }
-                    editDateIncome.setText(yyyy + "/" + MM + "/" + dd);
+                    String chosenDate = convertDateToString(returnedDayOfMonth, returnedMonth, returnedYear);
+                    editDateIncome.setText(chosenDate);
                 }, year, month, day);
                 datePickerDialog.show();
                 break;
@@ -119,8 +113,8 @@ public class IncomeActivity extends AppCompatActivity implements View.OnClickLis
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()){
-            case android.R.id.home:{
+        switch (item.getItemId()) {
+            case android.R.id.home: {
                 finish();
             }
         }
@@ -128,7 +122,7 @@ public class IncomeActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     public Date convertStringToDate(String dateAsString) {
-        SimpleDateFormat format = new SimpleDateFormat("yyyy/MM/dd");
+        SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy");
         Date date = new Date();
         try {
             date = format.parse(dateAsString);
@@ -136,5 +130,20 @@ public class IncomeActivity extends AppCompatActivity implements View.OnClickLis
             e.printStackTrace();
         }
         return date;
+    }
+
+    public String convertDateToString(int dayOfMonth, int month, int year) {
+        month = month + 1; //months are indexed starting at 0
+        String yyyy = "" + year;
+        String MM = "" + month;
+        String dd = "" + dayOfMonth;
+        if (month < 10) {
+            MM = "0" + month;
+        }
+        if (dayOfMonth < 10) {
+            dd = "0" + dayOfMonth;
+        }
+
+        return dd + "/" + MM + "/" + yyyy;
     }
 }

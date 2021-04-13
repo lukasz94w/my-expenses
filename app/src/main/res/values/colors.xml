@@ -7,7 +7,37 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="ColorPrimary">#79b350</color>
+    <color name="ColorPrimary">#4BA70A</color>
+    <color name="ColorDateHeader">#528A2A</color>
     <color name="ColorPrimaryDark">#79b350</color>
+    <color name="ColorPrimaryBright">#AACD91</color>
     <color name="BrownGrey">#D3D3D3</color>
+    <color name="BrownGreyBrighter">#9E9C9C</color>
+    <color name="Green">#2CAF33</color>
+    <color name="Red">#AF2C2C</color>
+    <color name="bacgroundColorPopup">#7E7F7D</color>
+
+    //PieChartOuter colors
+    <color name="car_color">#D40F02</color>
+    <color name="expense_color">#B1AF0C</color>
+    <color name="food_color">#D47529</color>
+    <color name="game_color">#81D42A</color>
+    <color name="gift_color">#52B11D</color>
+    <color name="health_color">#D415D0</color>
+    <color name="hobby_color">#6DAAB1</color>
+    <color name="income_color">#B1AF0C</color>
+    <color name="other_color">#B1AF0C</color>
+    <color name="payment_color">#B141A8</color>
+    <color name="self_improvement_color">#B141A8</color>
+    <color name="sport_color">#4449D4</color>
+    //PieChartOuter colors
+    <color name="incomes_color">#D0D0D0</color>
+    <color name="expenses_color">#B5B5B5</color>
+    //chart line seperator color
+    <color name="seperator_color">#B6000000</color>
+
+    //BarChart gridline colors
+    <color name="grid_color">#43000000</color>
+<!--    <color name="grid_color">#FFFFFF</color>-->
+
 </resources>

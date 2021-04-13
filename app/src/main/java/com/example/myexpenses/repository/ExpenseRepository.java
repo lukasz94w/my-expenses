@@ -15,14 +15,14 @@ import java.util.List;
 import java.util.Locale;
 
 public class ExpenseRepository extends SQLiteOpenHelper {
-    private static final int DATABASE_VERSION = 2;
-    private static final String DATABASE_NAME = "income_and_expense_database";
+    private static final int DATABASE_VERSION = 15;
+    private static final String DATABASE_NAME = "transaction_database";
     private static final String TABLE_EXPENSE = "expense";
     private static final String EXPENSE_ID = "id";
     private static final String EXPENSE_NAME = "name";
     private static final String EXPENSE_AMOUNT = "amount";
     private static final String EXPENSE_CATEGORY = "category";
-    private static final String EXPENSE_DATE = "date";
+    private static final String EXPENSE_DATE = "date_of_expense";
 
     public ExpenseRepository(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -42,7 +42,7 @@ public class ExpenseRepository extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    public void create(Expense expense){
+    public void create(Expense expense) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
 
@@ -62,7 +62,7 @@ public class ExpenseRepository extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
 
-        if(cursor.moveToFirst()) {
+        if (cursor.moveToFirst()) {
             do {
                 Expense expense = new Expense();
                 expense.setId(cursor.getInt(0));
@@ -76,6 +76,68 @@ public class ExpenseRepository extends SQLiteOpenHelper {
         }
         return expenseList;
     }
+
+    public List<Expense> findAllBetweenTwoDates(Long dateFrom, Long dateTo) {
+        List<Expense> expenseList = new ArrayList<>();
+
+        String selectQuery = "SELECT * FROM " + TABLE_EXPENSE + " WHERE " + EXPENSE_DATE + " >= " + dateFrom + " AND " + EXPENSE_DATE + " <= " + dateTo;
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                Expense expense = new Expense();
+                expense.setId(cursor.getInt(0));
+                expense.setName(cursor.getString(1));
+                expense.setAmount(Float.parseFloat(cursor.getString(2)));
+                expense.setCategory(cursor.getString(3));
+                expense.setDate(new Date(cursor.getLong(4)));
+
+                expenseList.add(expense);
+            } while (cursor.moveToNext());
+        }
+        return expenseList;
+    }
+
+    public Integer returnSumOfExpenses(Long dateFrom, Long dateTo) {
+        Integer sumOfExpenses = 0;
+
+        String selectQuery = "SELECT SUM(" + EXPENSE_AMOUNT + ") " + " FROM " + TABLE_EXPENSE + " WHERE " + EXPENSE_DATE + " >= " + dateFrom + " AND " + EXPENSE_DATE + " <= " + dateTo;
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        if (cursor.moveToFirst()) {
+            sumOfExpenses = cursor.getInt(0);
+
+        }
+        return sumOfExpenses;
+    }
+
+    public List<Expense> findLatest10Expenses() {
+        List<Expense> expenseList = new ArrayList<>();
+
+        String selectQuery = "SELECT * FROM expense ORDER BY date_of_expense DESC limit 10";
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                Expense expense = new Expense();
+                expense.setId(cursor.getInt(0));
+                expense.setName(cursor.getString(1));
+                expense.setAmount(Float.parseFloat(cursor.getString(2)));
+                expense.setCategory(cursor.getString(3));
+                expense.setDate(new Date(cursor.getLong(4)));
+
+                expenseList.add(expense);
+            } while (cursor.moveToNext());
+        }
+        return expenseList;
+    }
+
 
     public void deleteAllRecords() {
         SQLiteDatabase db = this.getWritableDatabase();

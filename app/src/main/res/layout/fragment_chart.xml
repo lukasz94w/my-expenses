@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".fragment.ChartFragment">
+
+        <RelativeLayout
+            android:id="@+id/navigation_bar"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="@color/ColorPrimaryBright"
+            android:clickable="false">
+
+            <ImageButton
+                android:id="@+id/previousMonthButton"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="5dp"
+                android:background="@android:color/transparent"
+                android:clickable="true"
+                android:src="@drawable/left_arrow" />
+
+            <ImageButton
+                android:id="@+id/nextMonthButton"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center_vertical"
+                android:layout_toRightOf="@id/actualChosenMonth"
+                android:background="@android:color/transparent"
+                android:clickable="true"
+                android:src="@drawable/right_arrow" />
+
+            <ImageView
+                android:id="@+id/moneyIcon"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_alignParentRight="true"
+                android:layout_centerInParent="true"
+                android:layout_gravity="center"
+                android:layout_marginRight="5dp"
+                android:src="@drawable/money" />
+
+            <TextView
+                android:id="@+id/actualChosenMonth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_toRightOf="@id/previousMonthButton"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/monthlyTransactionSum"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_toLeftOf="@id/moneyIcon"
+                android:gravity="center_vertical"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+        </RelativeLayout>
+
+    <ScrollView
+        android:id="@+id/chartsScrollContainer"
+        android:layout_below="@id/navigation_bar"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <RelativeLayout
+                android:id="@+id/chartContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+        </RelativeLayout>
+
+    </ScrollView>
+
+</RelativeLayout>
+

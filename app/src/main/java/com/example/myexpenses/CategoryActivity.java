@@ -11,6 +11,8 @@ import android.widget.ListView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.example.myexpenses.customAdapter.CategoryCustomList;
+
 public class CategoryActivity extends AppCompatActivity {
 
     private Toolbar toolbar;
@@ -31,7 +33,7 @@ public class CategoryActivity extends AppCompatActivity {
             R.drawable.game,
             R.drawable.sport,
             R.drawable.health,
-            R.drawable.self_impromevent,
+            R.drawable.self_improvement,
             R.drawable.hobby,
             R.drawable.other
     };
@@ -41,13 +43,8 @@ public class CategoryActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_category);
 
-        toolbar = findViewById(R.id.tool_bar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle("Wybierz kategorię");
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        CustomList adapter = new CustomList(CategoryActivity.this, categoryNames, categoryNamesId);
-        listView = findViewById(R.id.list);
+        CategoryCustomList adapter = new CategoryCustomList(CategoryActivity.this, categoryNames, categoryNamesId);
+        listView = findViewById(R.id.listView);
         listView.setAdapter(adapter);
         listView.setOnItemClickListener((AdapterView<?> parent, View view, int position, long id) -> {
             Intent intent = new Intent();
@@ -59,8 +56,8 @@ public class CategoryActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()){
-            case android.R.id.home:{
+        switch (item.getItemId()) {
+            case android.R.id.home: {
                 finish();
             }
         }

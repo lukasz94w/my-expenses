@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/bacgroundColorPopup"
+    tools:context=".TransactionActivity">
+
+    <include
+        android:id="@+id/tool_bar"
+        layout="@layout/tool_bar_for_popup_window" />
+
+    <Button
+        android:id="@+id/saveTransactionButton"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_below="@+id/chooseTransactionName"
+        android:layout_centerInParent="true"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/rounded_button"
+        android:text="@string/save_transaction"
+        android:textSize="15sp" />
+
+    <EditText
+        android:id="@+id/chooseTransactionAmount"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_below="@id/transactionCategoryImage"
+        android:layout_alignParentLeft="true"
+        android:textColor="@color/BrownGrey"
+        android:paddingLeft="10dp"
+        android:hint="Amount"
+        android:maxLength="5"
+        android:textColorHint="@color/BrownGreyBrighter"
+        android:inputType="numberDecimal"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/custom_edit_text"
+        android:drawableRight="@drawable/calculator"
+        android:textSize="20sp" />
+
+    <EditText
+        android:id="@+id/chooseTransactionName"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_below="@id/chooseTransactionAmount"
+        android:layout_alignParentLeft="true"
+        android:textColor="@color/BrownGrey"
+        android:layout_marginTop="6dp"
+        android:layout_marginLeft="10dp"
+        android:paddingLeft="10dp"
+        android:hint="Notes"
+        android:textColorHint="@color/BrownGreyBrighter"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/custom_edit_text"
+        android:drawableRight="@drawable/calculator"
+        android:textSize="20sp" />
+
+    <ImageView
+        android:id="@+id/transactionCategoryImage"
+        android:layout_margin="6dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_below="@id/chooseTransactionType"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="10dp" />
+
+    <LinearLayout
+        android:id="@+id/dateButtons"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true">
+
+        <Button
+            android:id="@+id/chooseTransactionDate"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="62dp"
+            android:layout_marginRight="2dp"
+            android:layout_weight="1.6"
+            android:background="@drawable/rounded_button"
+            android:elevation="4dp"
+            android:padding="7dp"
+            android:text=""
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/chooseTodayTommorow"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginLeft="2dp"
+            android:layout_marginTop="62dp"
+            android:layout_marginRight="10dp"
+            android:layout_weight="1"
+            android:background="@drawable/rounded_button"
+            android:elevation="4dp"
+            android:padding="10dp"
+            android:text="@string/yesterday"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <RadioGroup
+        android:id="@+id/chooseTransactionType"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/dateButtons"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/chosenTransactionExpense"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="1dp"
+            android:layout_weight="1"
+            android:background="@drawable/radio_selector"
+            android:button="@android:color/transparent"
+            android:checked="true"
+            android:elevation="4dp"
+            android:gravity="center"
+            android:padding="7dp"
+            android:text="@string/expense"
+            android:textColor="@drawable/text_color"
+            android:textSize="16sp" />
+
+        <RadioButton
+            android:id="@+id/chosenTransactionIncome"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:layout_marginLeft="1dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="10dp"
+            android:layout_weight="1"
+            android:background="@drawable/radio_selector"
+            android:button="@android:color/transparent"
+            android:elevation="4dp"
+            android:gravity="center"
+            android:padding="7dp"
+            android:text="@string/income"
+            android:textColor="@drawable/text_color"
+            android:textSize="16sp" />
+    </RadioGroup>
+
+    <Spinner
+        android:id="@+id/chooseTransactionCategory"
+        android:popupBackground="@color/bacgroundColorPopup"
+        android:layout_margin="6dp"
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:layout_below="@+id/chooseTransactionType"
+        android:layout_alignParentRight="true"
+        android:textAlignment="textEnd" />
+
+</RelativeLayout>

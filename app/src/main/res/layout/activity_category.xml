@@ -9,11 +9,10 @@
 
     <include
         android:id="@+id/tool_bar"
-        layout="@layout/tool_bar" />
+        layout="@layout/tool_bar_for_popup_window" />
 
     <ListView
-        android:id="@+id/list"
+        android:id="@+id/listView"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        />
+        android:layout_height="wrap_content" />
 </LinearLayout>
