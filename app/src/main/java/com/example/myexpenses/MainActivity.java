@@ -9,9 +9,8 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.example.myexpenses.fragment.ChartFragment;
-import com.example.myexpenses.fragment.LastTransactionsFragment;
+import com.example.myexpenses.fragment.ListTransactionsFragment;
 import com.example.myexpenses.fragment.LimitsFragment;
-import com.example.myexpenses.fragment.SummaryFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
@@ -30,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
 
         bottomNavigationView = findViewById(R.id.bottom_navigation_menu);
         bottomNavigationView.setOnNavigationItemSelectedListener(navigationItemSelectedListener);
-        openFragment(new LastTransactionsFragment());
+        openFragment(new ListTransactionsFragment());
     }
 
     public void openFragment(Fragment fragment) {
@@ -44,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
             = item -> {
         switch (item.getItemId()) {
             case R.id.navigation_last_transactions:
-                openFragment(new LastTransactionsFragment());
+                openFragment(new ListTransactionsFragment());
                 return true;
             case R.id.navigation_limits:
                 openFragment(new LimitsFragment());

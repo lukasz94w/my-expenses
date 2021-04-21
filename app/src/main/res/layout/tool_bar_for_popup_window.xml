@@ -9,14 +9,15 @@
         android:id="@+id/toolbarClose"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
         android:background="@android:color/transparent"
         android:paddingTop="10dp"
-        android:paddingRight="10dp"
+        android:paddingEnd="10dp"
         android:paddingBottom="10dp"
         android:clickable="true"
         android:scaleType="fitCenter"
-        android:src="@drawable/left_arrow" />
+        android:src="@drawable/left_arrow"
+        android:focusable="true" />
 
     <TextView
         android:id="@+id/toolbarText"

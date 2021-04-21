@@ -23,7 +23,7 @@
     <string name="monthly_limit">Monthly limit:</string>
     <string name="monthly_limit_set">Limit set:</string>
     <string name="monthly_limit_left">Limit left:</string>
-    <string name="accept_limit_button">Accept:</string>
+    <string name="set_limits_button">Set limits</string>
 
     <string name="limit_title">Attention</string>
     <string name="limit_yes_button">OK</string>

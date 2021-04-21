@@ -334,7 +334,7 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
                 xAxis.setAxisMaximum(31);
             }
             else if (numberOfDaysInMonth == 30){
-                xAxis.setAxisMaximum(29);
+                xAxis.setAxisMaximum(29.5f); //to last bar look better
             }
             else xAxis.setAxisMaximum(28); //february leap and non-leap year
             xAxis.setValueFormatter(new ValueFormatter() {
@@ -401,7 +401,7 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
             } else {
                 separatorLineLayout.addRule(RelativeLayout.BELOW, (i - 1) * 10 + 9); //draw liner under previous barChart
             }
-            separatorLine.setBackgroundColor(getResources().getColor(R.color.seperator_color));
+            separatorLine.setBackgroundColor(getResources().getColor(R.color.separator_color));
             chartContainer.addView(separatorLine, separatorLineLayout);
 
             ImageView categoryImage = new ImageView(getContext());

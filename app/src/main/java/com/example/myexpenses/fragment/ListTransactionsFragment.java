@@ -1,22 +1,21 @@
 package com.example.myexpenses.fragment;
 
+import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
-import android.text.Html;
 import android.text.InputFilter;
 import android.text.Spanned;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -30,7 +29,6 @@ import android.widget.RadioGroup;
 import android.widget.SearchView;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -38,8 +36,10 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.ListFragment;
 
+import com.example.myexpenses.model.Header;
+import com.example.myexpenses.model.Item;
 import com.example.myexpenses.R;
-import com.example.myexpenses.customAdapter.TransactionAdapter;
+import com.example.myexpenses.customAdapter.ItemAdapter;
 import com.example.myexpenses.model.Transaction;
 import com.example.myexpenses.repository.TransactionRepository;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -52,12 +52,13 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 
-public class LastTransactionsFragment extends ListFragment implements AdapterView.OnItemClickListener, View.OnClickListener, RadioGroup.OnCheckedChangeListener, AdapterView.OnItemSelectedListener, SearchView.OnQueryTextListener {
+public class ListTransactionsFragment extends ListFragment implements AdapterView.OnItemClickListener, View.OnClickListener, RadioGroup.OnCheckedChangeListener, AdapterView.OnItemSelectedListener, SearchView.OnQueryTextListener, View.OnTouchListener {
 
     //onCreate
     private TransactionRepository transactionRepository;
@@ -67,7 +68,7 @@ public class LastTransactionsFragment extends ListFragment implements AdapterVie
     private TextView actualChosenMonth;
     private ImageView nextMonthButton;
     private TextView monthlyTransactionSum;
-    private TransactionAdapter transactionAdapter;
+    private ItemAdapter itemAdapter;
     private FloatingActionButton addTransactionActionButton;
     //popupWindow
     private View popupView;
@@ -86,6 +87,7 @@ public class LastTransactionsFragment extends ListFragment implements AdapterVie
     private EditText chooseTransactionName;
     private Button deleteTransactionButton;
     private Button saveTransactionButton;
+    private Button saveNewTransactionButton;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -97,7 +99,7 @@ public class LastTransactionsFragment extends ListFragment implements AdapterVie
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        view = inflater.inflate(R.layout.fragment_last_transactions, container, false);
+        view = inflater.inflate(R.layout.fragment_list_transactions, container, false);
 
         previousMonthButton = view.findViewById(R.id.previousMonthButton);
         previousMonthButton.setOnClickListener(this);
@@ -109,8 +111,8 @@ public class LastTransactionsFragment extends ListFragment implements AdapterVie
 
         monthlyTransactionSum = view.findViewById(R.id.monthlyTransactionSum);
 
-        transactionAdapter = new TransactionAdapter(getActivity(), new ArrayList());
-        setListAdapter(transactionAdapter);
+        itemAdapter = new ItemAdapter(getActivity(), new ArrayList());
+        setListAdapter(itemAdapter);
 
         Calendar calendar = Calendar.getInstance();
         int currentMonth = calendar.get(Calendar.MONTH) + 1; //month index start at 0
@@ -144,6 +146,7 @@ public class LastTransactionsFragment extends ListFragment implements AdapterVie
 
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public void onClick(View v) {
@@ -179,7 +182,7 @@ public class LastTransactionsFragment extends ListFragment implements AdapterVie
                 LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(LAYOUT_INFLATER_SERVICE);
                 popupView = inflater.inflate(R.layout.popup_new_transaction, null);
 
-                popupWindow = new PopupWindow(popupView, 565, 760, true);
+                popupWindow = new PopupWindow(popupView, 565, 767, true);
                 popupWindow.showAtLocation(popupView, Gravity.CENTER, 0, 0);
 
                 toolbar = popupView.findViewById(R.id.tool_bar);
@@ -212,20 +215,22 @@ public class LastTransactionsFragment extends ListFragment implements AdapterVie
                 transactionCategoryImage = popupView.findViewById(R.id.transactionCategoryImage);
 
                 chooseTransactionCategory = popupView.findViewById(R.id.chooseTransactionCategory);
-                ArrayAdapter<String> chooseCategoryAdapter = new ArrayAdapter<>(this.getActivity(), R.layout.popup_spinner_layout, getResources().getStringArray(R.array.list_of_expenses));
+                ArrayAdapter<String> chooseCategoryAdapter = new ArrayAdapter<>(this.getActivity(), R.layout.spinner_categories, getResources().getStringArray(R.array.list_of_expenses));
                 chooseTransactionCategory.setAdapter(chooseCategoryAdapter);
                 chooseTransactionCategory.setOnItemSelectedListener(this);
 
                 chooseTransactionAmount = popupView.findViewById(R.id.chooseTransactionAmount);
                 chooseTransactionAmount.setFilters(new InputFilter[]{new DecimalDigitsInputFilter(7, 2)});
+                chooseTransactionAmount.setOnTouchListener(this);
                 chooseTransactionAmount.requestFocus();
                 InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
 
                 chooseTransactionName = popupView.findViewById(R.id.chooseTransactionName);
+                chooseTransactionName.setOnTouchListener(this);
 
-                saveTransactionButton = popupView.findViewById(R.id.saveTransactionButton);
-                saveTransactionButton.setOnClickListener(this);
+                saveNewTransactionButton = popupView.findViewById(R.id.saveNewTransactionButton);
+                saveNewTransactionButton.setOnClickListener(this);
                 break;
             }
 
@@ -284,21 +289,16 @@ public class LastTransactionsFragment extends ListFragment implements AdapterVie
                 break;
             }
 
-            case R.id.deleteTransactionButton: {
-
-                break;
-            }
-
-            case R.id.saveTransactionButton: {
+            case R.id.saveNewTransactionButton: {
                 Transaction transactionToSave = new Transaction();
 
                 //check if name field is empty, if so we set it as category name
-                String transactionName = this.chooseTransactionName.getText().toString();
+                String transactionName = chooseTransactionName.getText().toString();
 
                 //check if amount is empty if so we set it as zero
-                Float transactionAmount;
+                float transactionAmount;
                 try {
-                    transactionAmount = Float.valueOf(this.chooseTransactionAmount.getText().toString());
+                    transactionAmount = Float.parseFloat(chooseTransactionAmount.getText().toString());
                 } catch (NumberFormatException e) {
                     transactionAmount = 0f;
                 }
@@ -307,7 +307,7 @@ public class LastTransactionsFragment extends ListFragment implements AdapterVie
                 //also if its expense we need to add minus before amount
                 RadioButton checkedRadioButton = popupView.findViewById(chooseTransactionType.getCheckedRadioButtonId());
                 String categoryName = checkedRadioButton.getText().toString();
-                Integer transactionType = 0;
+                int transactionType = 0;
                 if (categoryName.equals("Expense")) {
                     transactionType = 1;
                     transactionAmount = -transactionAmount;
@@ -349,12 +349,10 @@ public class LastTransactionsFragment extends ListFragment implements AdapterVie
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        switch (parent.getId()) {
-            case R.id.chooseTransactionCategory: {
-                String transactionTypeName = chooseTransactionCategory.getSelectedItem().toString().toLowerCase().replace(" ", "_");
-                int idOfSuitableDrawableForTransactionTypeName = getContext().getResources().getIdentifier(transactionTypeName, "drawable", getContext().getPackageName());
-                transactionCategoryImage.setBackgroundResource(idOfSuitableDrawableForTransactionTypeName);
-            }
+        if (parent.getId() == R.id.chooseTransactionCategory) {
+            String transactionTypeName = chooseTransactionCategory.getSelectedItem().toString().toLowerCase().replace(" ", "_");
+            int idOfSuitableDrawableForTransactionTypeName = getContext().getResources().getIdentifier(transactionTypeName, "drawable", getContext().getPackageName());
+            transactionCategoryImage.setBackgroundResource(idOfSuitableDrawableForTransactionTypeName);
         }
     }
 
@@ -363,6 +361,8 @@ public class LastTransactionsFragment extends ListFragment implements AdapterVie
 
     }
 
+    @SuppressLint("ClickableViewAccessibility")
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public void onListItemClick(@NonNull ListView l, @NonNull View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
@@ -374,7 +374,7 @@ public class LastTransactionsFragment extends ListFragment implements AdapterVie
         LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(LAYOUT_INFLATER_SERVICE);
         popupView = inflater.inflate(R.layout.popup_modify_transaction, null);
 
-        popupWindow = new PopupWindow(popupView, 565, 851, true);
+        popupWindow = new PopupWindow(popupView, 565, 858, true);
         popupWindow.showAtLocation(popupView, Gravity.CENTER, 0, 0);
 
         toolbar = popupView.findViewById(R.id.tool_bar);
@@ -426,38 +426,90 @@ public class LastTransactionsFragment extends ListFragment implements AdapterVie
         chooseTransactionAmount.setFilters(new InputFilter[]{new DecimalDigitsInputFilter(7, 2)});
         double transactionAmount = selectedTransaction.getAmount();
         chooseTransactionAmount.setText(String.format("%.2f", Math.abs(transactionAmount)));
+        chooseTransactionAmount.setOnTouchListener(this);
         chooseTransactionAmount.requestFocus();
 
         chooseTransactionName = popupView.findViewById(R.id.chooseTransactionName);
         chooseTransactionName.setText(selectedTransaction.getName());
+        chooseTransactionName.setOnTouchListener(this);
 
         deleteTransactionButton = popupView.findViewById(R.id.deleteTransactionButton);
-        deleteTransactionButton.setOnClickListener(this);
+
+        deleteTransactionButton.setOnClickListener(v1 -> {
+            transactionRepository.delete(selectedTransaction.getId());
+
+            updateView(currentMonth + 1, currentYear);
+
+            Snackbar snackbar = Snackbar.make(getView(), "Record successfully deleted", Snackbar.LENGTH_LONG);
+            snackbar.show();
+            popupWindow.dismiss();
+        });
 
         saveTransactionButton = popupView.findViewById(R.id.saveTransactionButton);
-        saveTransactionButton.setOnClickListener(this);
+        saveTransactionButton.setOnClickListener(v12 -> {
+            Transaction transactionToSave = new Transaction();
+
+            int transactionId = selectedTransaction.getId();
+
+            //check if name field is empty, if so we set it as category name
+            String transactionName = chooseTransactionName.getText().toString();
+
+            //check if amount is empty if so we set it as zero
+            float transactionAmount1;
+            try {
+                transactionAmount1 = Float.parseFloat(chooseTransactionAmount.getText().toString());
+            } catch (NumberFormatException e) {
+                transactionAmount1 = 0f;
+            }
+
+            //check there typeOfTransaction: 0 - income, 1 expense,
+            //also if its expense we need to add minus before amount
+            RadioButton checkedRadioButton = popupView.findViewById(chooseTransactionType.getCheckedRadioButtonId());
+            String categoryName = checkedRadioButton.getText().toString();
+            int transactionType = 0;
+            if (categoryName.equals("Expense")) {
+                transactionType = 1;
+                transactionAmount1 = -transactionAmount1;
+            }
+
+            transactionToSave.setId(transactionId);
+            transactionToSave.setName(transactionName);
+            transactionToSave.setAmount(transactionAmount1);
+            transactionToSave.setType(transactionType);
+            transactionToSave.setCategory(chooseTransactionCategory.getSelectedItem().toString());
+            transactionToSave.setDate(convertStringToDate(chooseTransactionDate.getText().toString()));
+            transactionRepository.update(transactionToSave);
+
+            updateView(currentMonth + 1, currentYear);
+
+            Snackbar snackbar = Snackbar.make(getView(), "Record successfully updated", Snackbar.LENGTH_LONG);
+            snackbar.show();
+            popupWindow.dismiss();
+        });
+
+        saveNewTransactionButton = popupView.findViewById(R.id.saveNewTransactionButton);
+        saveNewTransactionButton.setOnClickListener(this);
     }
 
     @Override
     public void onCheckedChanged(RadioGroup group, int checkedId) {
-        switch (group.getId()) {
-            case R.id.chooseTransactionType:
-                int idOfCheckedRadiobutton = chooseTransactionType.getCheckedRadioButtonId();
-                RadioButton checkedRadiobutton = popupView.findViewById(idOfCheckedRadiobutton);
-                checkedRadiobutton.setChecked(true);
-                String chosenTransactionTypeName = checkedRadiobutton.getText().toString();
+        if (group.getId() == R.id.chooseTransactionType) {
+            int idOfCheckedRadiobutton = chooseTransactionType.getCheckedRadioButtonId();
+            RadioButton checkedRadiobutton = popupView.findViewById(idOfCheckedRadiobutton);
+            checkedRadiobutton.setChecked(true);
+            String chosenTransactionTypeName = checkedRadiobutton.getText().toString();
 
-                if (chosenTransactionTypeName.equals("Expense")) {
-                    chosenTransactionExpense.setChecked(true);
-                    chosenTransactionIncome.setChecked(false);
-                    ArrayAdapter<String> chooseCategoryAdapter = new ArrayAdapter<>(this.getActivity(), R.layout.popup_spinner_layout, getResources().getStringArray(R.array.list_of_expenses));
-                    chooseTransactionCategory.setAdapter(chooseCategoryAdapter);
-                } else {
-                    chosenTransactionExpense.setChecked(false);
-                    chosenTransactionIncome.setChecked(true);
-                    ArrayAdapter<String> chooseCategoryAdapter = new ArrayAdapter<String>(this.getActivity(), R.layout.popup_spinner_layout, getResources().getStringArray(R.array.list_of_incomes));
-                    chooseTransactionCategory.setAdapter(chooseCategoryAdapter);
-                }
+            if (chosenTransactionTypeName.equals("Expense")) {
+                chosenTransactionExpense.setChecked(true);
+                chosenTransactionIncome.setChecked(false);
+                ArrayAdapter<String> chooseCategoryAdapter = new ArrayAdapter<>(this.getActivity(), R.layout.spinner_categories, getResources().getStringArray(R.array.list_of_expenses));
+                chooseTransactionCategory.setAdapter(chooseCategoryAdapter);
+            } else {
+                chosenTransactionExpense.setChecked(false);
+                chosenTransactionIncome.setChecked(true);
+                ArrayAdapter<String> chooseCategoryAdapter = new ArrayAdapter<String>(this.getActivity(), R.layout.spinner_categories, getResources().getStringArray(R.array.list_of_incomes));
+                chooseTransactionCategory.setAdapter(chooseCategoryAdapter);
+            }
         }
     }
 
@@ -495,7 +547,7 @@ public class LastTransactionsFragment extends ListFragment implements AdapterVie
     private void updateView(int currentChosenMonth, int currentChosenMonthYear) {
         ArrayList<Transaction> monthTransactions = transactionRepository.findTransactionsInMonth(currentChosenMonth, currentChosenMonthYear);
         double totalSum = monthTransactions.stream()
-                .mapToDouble(o -> o.getAmount())
+                .mapToDouble(Transaction::getAmount)
                 .sum();
         ArrayList<Transaction> monthTransactionsListWithAddedHeaders = sortAndAddHeaders(monthTransactions);
 
@@ -505,7 +557,7 @@ public class LastTransactionsFragment extends ListFragment implements AdapterVie
     }
 
     private ArrayList sortAndAddHeaders(ArrayList<Transaction> transactionList) {
-        ArrayList<Transaction> sortedListByDate = new ArrayList<>();
+        ArrayList<Item> sortedListByDate = new ArrayList<>();
         Collections.sort(transactionList);
 
         Date dateHolder = new Date();
@@ -513,11 +565,11 @@ public class LastTransactionsFragment extends ListFragment implements AdapterVie
         for (int i = 0; i < transactionList.size(); i++) {
             //if it is the start of a new day create a new header (as told higher)
             if (!(dateHolder.equals(transactionList.get(i).getDate()))) {
-                Transaction headerNewDay = new Transaction(transactionList.get(i).getDate());
-                headerNewDay.setSectionHeader(true);
-                sortedListByDate.add(headerNewDay);
+                //if it's date header make new and add it
+                sortedListByDate.add(new Header(transactionList.get(i).getDate()));
                 dateHolder = transactionList.get(i).getDate();
             }
+            //if it's transaction just add it
             sortedListByDate.add(transactionList.get(i));
         }
 
@@ -535,9 +587,9 @@ public class LastTransactionsFragment extends ListFragment implements AdapterVie
     }
 
     private void updateMonthlyTransactionsList(ArrayList monthTransactionsListWithAddedHeaders) {
-        transactionAdapter.clear();
-        transactionAdapter.addAll(monthTransactionsListWithAddedHeaders);
-        transactionAdapter.notifyDataSetChanged();
+        itemAdapter.clear();
+        itemAdapter.addAll(monthTransactionsListWithAddedHeaders);
+        itemAdapter.notifyDataSetChanged();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
@@ -639,23 +691,53 @@ public class LastTransactionsFragment extends ListFragment implements AdapterVie
         cal.set(Calendar.DAY_OF_MONTH, Integer.parseInt(timeParts[0]));
         cal.set(Calendar.MONTH, Integer.parseInt(timeParts[1]) - 1);
         cal.set(Calendar.YEAR, Integer.parseInt(timeParts[2]));
-        final Date myDate = cal.getTime();
-        return myDate;
+        return cal.getTime();
+    }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        switch (v.getId()) {
+            case R.id.chooseTransactionName: {
+                final int DRAWABLE_RIGHT = 2;
+
+                if(event.getAction() == MotionEvent.ACTION_UP) {
+                    if(event.getRawX() >= (chooseTransactionName.getRight() - chooseTransactionName.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width())) {
+                        chooseTransactionName.setText("");
+                        v.performClick();
+                        return false;
+                    }
+                }
+                break;
+            }
+            case R.id.chooseTransactionAmount: {
+                final int DRAWABLE_RIGHT = 2;
+
+                if(event.getAction() == MotionEvent.ACTION_UP) {
+                    if(event.getRawX() >= (chooseTransactionName.getRight() - chooseTransactionName.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width())) {
+                        chooseTransactionAmount.setText("");
+                        v.performClick();
+                        return false;
+                    }
+                }
+            }
+            break;
+        }
+        return false;
     }
 
     public class DecimalDigitsInputFilter implements InputFilter {
 
         Pattern mPattern;
 
-        public DecimalDigitsInputFilter(int digitsBeforeZero,int digitsAfterZero) {
-            mPattern=Pattern.compile("[0-9]{0," + (digitsBeforeZero-1) + "}+((\\.[0-9]{0," + (digitsAfterZero-1) + "})?)||(\\.)?");
+        public DecimalDigitsInputFilter(int digitsBeforeZero, int digitsAfterZero) {
+            mPattern = Pattern.compile("[0-9]{0," + (digitsBeforeZero - 1) + "}+((\\.[0-9]{0," + (digitsAfterZero - 1) + "})?)||(\\.)?");
         }
 
         @Override
         public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
 
-            Matcher matcher=mPattern.matcher(dest);
-            if(!matcher.matches())
+            Matcher matcher = mPattern.matcher(dest);
+            if (!matcher.matches())
                 return "";
             return null;
         }
@@ -663,63 +745,75 @@ public class LastTransactionsFragment extends ListFragment implements AdapterVie
     }
 
     public void createTestRecords() {
-        transactionRepository.deleteAllRecords();
+//        transactionRepository.deleteAllRecords();
+        for (int i = 0; i < 2; i++) {
+            //INCOMES
+            transactionRepository.create(new Transaction(0, "Wypłata za październik", new Random().nextInt(5000), "Payment", returnDate(new Random().nextInt(28) + 1 + ".10.2020")));
+            transactionRepository.create(new Transaction(0, "Wypłata za listopad", new Random().nextInt(5000), "Payment", returnDate(new Random().nextInt(28) + 1 + ".11.2020")));
+            transactionRepository.create(new Transaction(0, "Wypłata za grudzień", new Random().nextInt(5000), "Payment", returnDate(new Random().nextInt(28) + 1 + ".12.2020")));
+            transactionRepository.create(new Transaction(0, "Premia na święta", new Random().nextInt(5000), "Payment", returnDate(new Random().nextInt(28) + 1 + ".12.2020")));
+            transactionRepository.create(new Transaction(0, "Wypłata za styczeń", new Random().nextInt(5000), "Payment", returnDate(new Random().nextInt(28) + 1 + ".01.2021")));
+            transactionRepository.create(new Transaction(0, "Wypłata za luty", new Random().nextInt(5000), "Payment", returnDate(new Random().nextInt(28) + 1 + ".02.2020")));
+            transactionRepository.create(new Transaction(0, "Wypłata za marzec", new Random().nextInt(5000), "Payment", returnDate(new Random().nextInt(28) + 1 + ".03.2021")));
+            transactionRepository.create(new Transaction(0, "Wygrana w lotka na początku marca", new Random().nextInt(5000), "Payment", returnDate(new Random().nextInt(28) + 1 + ".03.2021")));
+            transactionRepository.create(new Transaction(0, "Testowy wyraz bardzo dlugi", new Random().nextInt(5000), "Payment", returnDate(new Random().nextInt(28) + 1 + ".04.2021")));
 
-        //INCOMES
-        transactionRepository.create(new Transaction(0, "Wypłata za październik", 1200, "Payment", returnDate("08.10.2020")));
-        transactionRepository.create(new Transaction(0, "Wypłata za listopad", 1400, "Payment", returnDate("07.11.2020")));
-        transactionRepository.create(new Transaction(0, "Wypłata za grudzień", 1300, "Payment", returnDate("07.12.2020")));
-        transactionRepository.create(new Transaction(0, "Premia na święta", 500, "Payment", returnDate("14.12.2020")));
-        transactionRepository.create(new Transaction(0, "Wypłata za styczeń", 1800, "Payment", returnDate("07.01.2021")));
-        transactionRepository.create(new Transaction(0, "Wypłata za luty", 1700, "Payment", returnDate("06.02.2021")));
-        transactionRepository.create(new Transaction(0, "Wypłata za marzec", 99999, "Payment", returnDate("09.03.2021")));
-        transactionRepository.create(new Transaction(0, "Wygrana w lotka na początku marca", 10000, "Payment", returnDate("10.03.2021")));
-        transactionRepository.create(new Transaction(0, "Testowy wyraz bardzo dlugi", 10000, "Payment", returnDate("10.03.2021")));
+            //OCTOBER
+            transactionRepository.create(new Transaction(1, "Pizza", new Random().nextInt(250), "Food", returnDate(new Random().nextInt(28) + 1 + ".10.2020")));
+            transactionRepository.create(new Transaction(1, "Trankowanie", new Random().nextInt(250), "Car", returnDate(new Random().nextInt(28) + 1 + ".10.2020")));
+            transactionRepository.create(new Transaction(1, "CD Action", new Random().nextInt(250), "Game", returnDate(new Random().nextInt(28) + 1 + ".10.2020")));
+            transactionRepository.create(new Transaction(1, "Przegląd roweru", new Random().nextInt(250), "Sport", returnDate(new Random().nextInt(28) + 1 + ".10.2020")));
+            transactionRepository.create(new Transaction(1, "Karta graficzna", new Random().nextInt(250), "Sport", returnDate(new Random().nextInt(28) + 1 + ".10.2020")));
 
-        //OCTOBER
-        transactionRepository.create(new Transaction(1, "Pizza", -45, "Food", returnDate("15.10.2020")));
-        transactionRepository.create(new Transaction(1, "Trankowanie", -100, "Car", returnDate("15.10.2020")));
-        transactionRepository.create(new Transaction(1, "CD Action", -11, "Game", returnDate("17.10.2020")));
-        transactionRepository.create(new Transaction(1, "Przegląd roweru", -150, "Sport", returnDate("19.10.2020")));
-        transactionRepository.create(new Transaction(1, "Karta graficzna", -150, "Sport", returnDate("19.10.2020")));
+            //NOVEMBER
+            transactionRepository.create(new Transaction(1, "Wycieczka Wawka", new Random().nextInt(250), "Hobby", returnDate(new Random().nextInt(28) + 1 + ".11.2020")));
+            transactionRepository.create(new Transaction(1, "Fifa 2021", new Random().nextInt(250), "Game", returnDate(new Random().nextInt(28) + 1 + ".11.2020")));
+            transactionRepository.create(new Transaction(1, "CD Action", new Random().nextInt(250), "Game", returnDate(new Random().nextInt(28) + 1 + ".11.2020")));
+            transactionRepository.create(new Transaction(1, "Delegacja na Słowację", new Random().nextInt(250), "Hobby", returnDate(new Random().nextInt(28) + 1 + ".11.2020")));
 
-        //NOVEMBER
-        transactionRepository.create(new Transaction(1, "Wycieczka Wawka", -45, "Hobby", returnDate("02.11.2020")));
-        transactionRepository.create(new Transaction(1, "Fifa 2021", -100, "Game", returnDate("07.11.2020")));
-        transactionRepository.create(new Transaction(1, "CD Action", -11, "Game", returnDate("09.11.2020")));
-        transactionRepository.create(new Transaction(1, "Delegacja na Słowację", -250, "Hobby", returnDate("21.11.2020")));
+            //DECEMBER
+            transactionRepository.create(new Transaction(1, "Prezent na Boże Narodziny mama", new Random().nextInt(250), "Other", returnDate(new Random().nextInt(28) + 1 + ".12.2020")));
+            transactionRepository.create(new Transaction(1, "Prezent na Boże Narodziny ojciec", new Random().nextInt(250), "Other", returnDate(new Random().nextInt(28) + 1 + ".12.2020")));
+            transactionRepository.create(new Transaction(1, "Mikołajki PLUM", new Random().nextInt(250), "Other", returnDate(new Random().nextInt(28) + 1 + ".12.2020")));
+            transactionRepository.create(new Transaction(1, "Wymiana lusterka YARIS", new Random().nextInt(250), "Car", returnDate(new Random().nextInt(28) + 1 + ".12.2020")));
 
-        //DECEMBER
-        transactionRepository.create(new Transaction(1, "Prezent na Boże Narodziny mama", -155, "Other", returnDate("03.12.2020")));
-        transactionRepository.create(new Transaction(1, "Prezent na Boże Narodziny ojciec", -135, "Other", returnDate("03.12.2020")));
-        transactionRepository.create(new Transaction(1, "Mikołajki PLUM", -135, "Other", returnDate("06.12.2020")));
-        transactionRepository.create(new Transaction(1, "Wymiana lusterka YARIS", -200, "Car", returnDate("12.12.2020")));
+            //JANUARY
+            transactionRepository.create(new Transaction(1, "Sylwester", new Random().nextInt(250), "Other", returnDate(new Random().nextInt(28) + 1 + ".01.2021")));
+            transactionRepository.create(new Transaction(1, "Happy Meal w macu", new Random().nextInt(250), "Food", returnDate(new Random().nextInt(28) + 1 + ".01.2021")));
+            transactionRepository.create(new Transaction(1, "Pizza", new Random().nextInt(250), "Food", returnDate(new Random().nextInt(28) + 1 + ".01.2021")));
+            transactionRepository.create(new Transaction(1, "Tankowanie", new Random().nextInt(250), "Car", returnDate(new Random().nextInt(28) + 1 + ".01.2021")));
 
-        //JANUARY
-        transactionRepository.create(new Transaction(1, "Sylwester", -300, "Other", returnDate("01.01.2021")));
-        transactionRepository.create(new Transaction(1, "Happy Meal w macu", -20, "Food", returnDate("09.01.2021")));
-        transactionRepository.create(new Transaction(1, "Pizza", -35, "Food", returnDate("20.01.2021")));
-        transactionRepository.create(new Transaction(1, "Tankowanie", -150, "Car", returnDate("21.01.2021")));
+            //FEBRUARY
+            transactionRepository.create(new Transaction(1, "Spodnie do biegania", new Random().nextInt(250), "Sport", returnDate(new Random().nextInt(28) + 1 + ".02.2021")));
+            transactionRepository.create(new Transaction(1, "Koszula galowa", new Random().nextInt(250), "Other", returnDate(new Random().nextInt(28) + 1 + ".02.2021")));
+            transactionRepository.create(new Transaction(1, "Pizza", new Random().nextInt(250), "Food", returnDate(new Random().nextInt(28) + 1 + ".02.2021")));
+            transactionRepository.create(new Transaction(1, "Tankowanie", new Random().nextInt(250), "Car", returnDate(new Random().nextInt(28) + 1 + ".02.2021")));
+            transactionRepository.create(new Transaction(1, "Zakupy w LIDLu", new Random().nextInt(250), "Food", returnDate(new Random().nextInt(28) + 1 + ".02.2021")));
 
-        //FEBRUARY
-        transactionRepository.create(new Transaction(1, "Spodnie do biegania", -150, "Sport", returnDate("03.02.2021")));
-        transactionRepository.create(new Transaction(1, "Koszula galowa", -70, "Other", returnDate("09.02.2021")));
-        transactionRepository.create(new Transaction(1, "Pizza", -35, "Food", returnDate("12.02.2021")));
-        transactionRepository.create(new Transaction(1, "Tankowanie", -90, "Car", returnDate("12.02.2021")));
-        transactionRepository.create(new Transaction(1, "Zakupy w LIDLu", -78, "Food", returnDate("22.02.2021")));
+            //MARCH
+            transactionRepository.create(new Transaction(1, "Bardzo długi wpis 1234567999999999", new Random().nextInt(250), "Game", returnDate(new Random().nextInt(28) + 1 + ".03.2021")));
+            transactionRepository.create(new Transaction(1, "Bardzo długi wpis 1234567890", new Random().nextInt(250), "Car", returnDate(new Random().nextInt(28) + 1 + ".03.2021")));
+            transactionRepository.create(new Transaction(1, "Bardzo długi wpis 1234567", new Random().nextInt(250), "Food", returnDate(new Random().nextInt(28) + 1 + ".03.2021")));
+            transactionRepository.create(new Transaction(1, "Bardzo długi wpis 1234567", new Random().nextInt(250), "Food", returnDate(new Random().nextInt(28) + 1 + ".03.2021")));
+            transactionRepository.create(new Transaction(1, "Buty do biegania", new Random().nextInt(250), "Sport", returnDate(new Random().nextInt(28) + 1 + ".03.2021")));
+            transactionRepository.create(new Transaction(1, "Opaska Xiaomi", new Random().nextInt(250), "Sport", returnDate(new Random().nextInt(28) + 1 + ".03.2021")));
+            transactionRepository.create(new Transaction(1, "DOOM", new Random().nextInt(250), "Game", returnDate(new Random().nextInt(28) + 1 + ".03.2021")));
+            transactionRepository.create(new Transaction(1, "Tankowanie", new Random().nextInt(250), "Car", returnDate(new Random().nextInt(28) + 1 + ".03.2021")));
+            transactionRepository.create(new Transaction(1, "Zakupy w LIDLu", new Random().nextInt(250), "Food", returnDate(new Random().nextInt(28) + 1 + ".03.2021")));
 
-        //MARCH
-        transactionRepository.create(new Transaction(1, "Bardzo długi wpis 1234567999999999", -5, "Game", returnDate("01.03.2021")));
-        transactionRepository.create(new Transaction(1, "Bardzo długi wpis 1234567890", -120, "Car", returnDate("02.03.2021")));
-        transactionRepository.create(new Transaction(1, "Bardzo długi wpis 1234567", -99999, "Food", returnDate("02.03.2021")));
-        transactionRepository.create(new Transaction(1, "Bardzo długi wpis 1234567", -9999, "Food", returnDate("03.03.2021")));
-        transactionRepository.create(new Transaction(1, "Buty do biegania", -350, "Sport", returnDate("03.03.2021")));
-        transactionRepository.create(new Transaction(1, "Opaska Xiaomi", -70, "Sport", returnDate("03.03.2021")));
-        transactionRepository.create(new Transaction(1, "DOOM", -95, "Game", returnDate("03.03.2021")));
-        transactionRepository.create(new Transaction(1, "Tankowanie", -120, "Car", returnDate("14.03.2021")));
-        transactionRepository.create(new Transaction(1, "Zakupy w LIDLu", -95, "Food", returnDate("22.03.2021")));
+            //APRIL
+            transactionRepository.create(new Transaction(1, "Bardzo długi wpis 1234567999999999", new Random().nextInt(250), "Game", returnDate(new Random().nextInt(28) + 1 + ".04.2021")));
+            transactionRepository.create(new Transaction(1, "Bardzo długi wpis 1234567890", new Random().nextInt(250), "Car", returnDate(new Random().nextInt(28) + 1 + ".04.2021")));
+            transactionRepository.create(new Transaction(1, "Bardzo długi wpis 1234567", new Random().nextInt(250), "Food", returnDate(new Random().nextInt(28) + 1 + ".04.2021")));
+            transactionRepository.create(new Transaction(1, "Bardzo długi wpis 1234567", new Random().nextInt(250), "Food", returnDate(new Random().nextInt(28) + 1 + ".04.2021")));
+            transactionRepository.create(new Transaction(1, "Buty do biegania", new Random().nextInt(250), "Sport", returnDate(new Random().nextInt(28) + 1 + ".04.2021")));
+            transactionRepository.create(new Transaction(1, "Opaska Xiaomi", new Random().nextInt(250), "Sport", returnDate(new Random().nextInt(28) + 1 + ".04.2021")));
+            transactionRepository.create(new Transaction(1, "DOOM", new Random().nextInt(250), "Game", returnDate(new Random().nextInt(28) + 1 + ".04.2021")));
+            transactionRepository.create(new Transaction(1, "Tankowanie", new Random().nextInt(250), "Car", returnDate(new Random().nextInt(28) + 1 + ".04.2021")));
+            transactionRepository.create(new Transaction(1, "Zakupy w LIDLu", new Random().nextInt(250), "Food", returnDate(new Random().nextInt(28) + 1 + ".04.2021")));
 
-        //MAY
-        transactionRepository.create(new Transaction(1, "Prezent na komunię", -500, "Other", returnDate("22.05.2021")));
+            //MAY
+            transactionRepository.create(new Transaction(1, "Prezent na komunię", new Random().nextInt(250), "Other", returnDate(new Random().nextInt(28) + 1 + ".05.2021")));
+        }
     }
 }

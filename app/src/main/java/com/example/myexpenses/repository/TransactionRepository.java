@@ -79,6 +79,63 @@ public class TransactionRepository extends SQLiteOpenHelper {
         return transactionList;
     }
 
+    public ArrayList<Transaction> findExpensesInMonth(int month, int year) {
+        Long startOfMonthUnix;
+        Long endOfMonthUnix;
+        ArrayList<Transaction> transactionList;
+        {
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.MONTH, month - 1);
+            calendar.set(Calendar.YEAR, year);
+            calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMinimum(Calendar.DAY_OF_MONTH));
+            calendar.set(Calendar.HOUR_OF_DAY, 0);
+            calendar.set(Calendar.MINUTE, 0);
+            calendar.set(Calendar.SECOND, 0);
+            calendar.set(Calendar.MILLISECOND, 0);
+            startOfMonthUnix  = calendar.getTime().getTime();
+        }
+
+        {
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.MONTH, month - 1);
+            calendar.set(Calendar.DAY_OF_MONTH, 1); //problem of 29 march
+            calendar.set(Calendar.YEAR, year);
+            calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+            calendar.set(Calendar.HOUR_OF_DAY, 23);
+            calendar.set(Calendar.MINUTE, 59);
+            calendar.set(Calendar.SECOND, 59);
+            calendar.set(Calendar.MILLISECOND, 999);
+            endOfMonthUnix = calendar.getTime().getTime();
+        }
+        transactionList = findExpensesBetweenDates(startOfMonthUnix, endOfMonthUnix);
+        return transactionList;
+    }
+
+    public ArrayList<Transaction> findExpensesBetweenDates(Long dateFrom, Long dateTo) {
+        ArrayList<Transaction> transactionList = new ArrayList<>();
+
+        String selectQuery = "SELECT * FROM " + TABLE_TRANSACTION + " WHERE " + TRANSACTION_DATE + " >= " + dateFrom + " AND " + TRANSACTION_DATE + " <= " + dateTo + " AND type = 1";
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                Transaction transaction = new Transaction();
+                transaction.setId(cursor.getInt(0));
+                transaction.setType(cursor.getInt(1));
+                transaction.setName(cursor.getString(2));
+                transaction.setAmount(Float.parseFloat(cursor.getString(3)));
+                transaction.setCategory(cursor.getString(4));
+                transaction.setDate(new Date(cursor.getLong(5)));
+
+                transactionList.add(transaction);
+            } while (cursor.moveToNext());
+        }
+        return transactionList;
+    }
+
+
     public ArrayList<Transaction> findTransactionsInMonth(int month, int year) {
         Long startOfMonthUnix;
         Long endOfMonthUnix;
@@ -107,11 +164,11 @@ public class TransactionRepository extends SQLiteOpenHelper {
             calendar.set(Calendar.MILLISECOND, 999);
             endOfMonthUnix = calendar.getTime().getTime();
         }
-        transactionList = findAllBetweenDates(startOfMonthUnix, endOfMonthUnix);
+        transactionList = findTransactionsBetweenDates(startOfMonthUnix, endOfMonthUnix);
         return transactionList;
     }
 
-    public ArrayList<Transaction> findAllBetweenDates(Long dateFrom, Long dateTo) {
+    public ArrayList<Transaction> findTransactionsBetweenDates(Long dateFrom, Long dateTo) {
         ArrayList<Transaction> transactionList = new ArrayList<>();
 
         String selectQuery = "SELECT * FROM " + TABLE_TRANSACTION + " WHERE " + TRANSACTION_DATE + " >= " + dateFrom + " AND " + TRANSACTION_DATE + " < " + dateTo
@@ -145,30 +202,6 @@ public class TransactionRepository extends SQLiteOpenHelper {
 
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_TRANSACTION + " WHERE " + TRANSACTION_NAME + " LIKE ?",  new String[] { "%" + keyword + "%" });
-
-        if (cursor.moveToFirst()) {
-            do {
-                Transaction transaction = new Transaction();
-                transaction.setId(cursor.getInt(0));
-                transaction.setType(cursor.getInt(1));
-                transaction.setName(cursor.getString(2));
-                transaction.setAmount(Float.parseFloat(cursor.getString(3)));
-                transaction.setCategory(cursor.getString(4));
-                transaction.setDate(new Date(cursor.getLong(5)));
-
-                transactionList.add(transaction);
-            } while (cursor.moveToNext());
-        }
-        return transactionList;
-    }
-
-    public List<Transaction> findExpensesBetweenDates(Long dateFrom, Long dateTo) {
-        List<Transaction> transactionList = new ArrayList<>();
-
-        String selectQuery = "SELECT * FROM " + TABLE_TRANSACTION + " WHERE " + TRANSACTION_DATE + " >= " + dateFrom + " AND " + TRANSACTION_DATE + " <= " + dateTo + " AND type = 1";
-
-        SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery(selectQuery, null);
 
         if (cursor.moveToFirst()) {
             do {
@@ -248,6 +281,23 @@ public class TransactionRepository extends SQLiteOpenHelper {
         return transactionList;
     }
 
+    public void update(Transaction updatedTransaction) {
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(TRANSACTION_TYPE, updatedTransaction.getType());
+        values.put(TRANSACTION_NAME, updatedTransaction.getName());
+        values.put(TRANSACTION_AMOUNT, updatedTransaction.getAmount());
+        values.put(TRANSACTION_CATEGORY, updatedTransaction.getCategory());
+        values.put(TRANSACTION_DATE, updatedTransaction.getDate().getTime());
+
+        db.update(TABLE_TRANSACTION, values, TRANSACTION_ID + "=" + updatedTransaction.getId(), null);
+    }
+
+    public void delete(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DELETE FROM " +  TABLE_TRANSACTION + " WHERE " + TRANSACTION_ID +  " = " + id);
+    }
 
     public void deleteAllRecords() {
         SQLiteDatabase db = this.getWritableDatabase();

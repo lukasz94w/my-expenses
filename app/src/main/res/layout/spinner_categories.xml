@@ -2,6 +2,7 @@
 
 <TextView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/text1"
     android:layout_width="match_parent"
     android:layout_height="50dp"
@@ -9,4 +10,4 @@
     android:gravity="right"
     android:textColor="@color/BrownGrey"
     android:padding="11dip"
-    />
+    tools:ignore="RtlHardcoded" />

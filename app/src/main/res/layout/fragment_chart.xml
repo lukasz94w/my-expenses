@@ -17,29 +17,31 @@
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_gravity="center_vertical"
-                android:layout_marginLeft="5dp"
+                android:layout_marginStart="5dp"
                 android:background="@android:color/transparent"
                 android:clickable="true"
-                android:src="@drawable/left_arrow" />
+                android:src="@drawable/left_arrow"
+                android:focusable="true" />
 
             <ImageButton
                 android:id="@+id/nextMonthButton"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_gravity="center_vertical"
-                android:layout_toRightOf="@id/actualChosenMonth"
+                android:layout_toEndOf="@id/actualChosenMonth"
                 android:background="@android:color/transparent"
                 android:clickable="true"
-                android:src="@drawable/right_arrow" />
+                android:src="@drawable/right_arrow"
+                android:focusable="true" />
 
             <ImageView
                 android:id="@+id/moneyIcon"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
                 android:layout_centerInParent="true"
                 android:layout_gravity="center"
-                android:layout_marginRight="5dp"
+                android:layout_marginEnd="5dp"
                 android:src="@drawable/money" />
 
             <TextView
@@ -47,14 +49,14 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
-                android:layout_toRightOf="@id/previousMonthButton"
+                android:layout_toEndOf="@id/previousMonthButton"
                 android:textSize="18sp" />
 
             <TextView
                 android:id="@+id/monthlyTransactionSum"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:layout_toLeftOf="@id/moneyIcon"
+                android:layout_toStartOf="@id/moneyIcon"
                 android:gravity="center_vertical"
                 android:textSize="22sp"
                 android:textStyle="bold" />

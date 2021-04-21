@@ -17,6 +17,9 @@
     <color name="Red">#AF2C2C</color>
     <color name="bacgroundColorPopup">#7E7F7D</color>
 
+    <color name="barChartLimits">#94E1E1</color>
+
+
     //PieChartOuter colors
     <color name="car_color">#D40F02</color>
     <color name="expense_color">#B1AF0C</color>
@@ -34,10 +37,12 @@
     <color name="incomes_color">#D0D0D0</color>
     <color name="expenses_color">#B5B5B5</color>
     //chart line seperator color
-    <color name="seperator_color">#B6000000</color>
-
+    <color name="separator_color">#B6000000</color>
     //BarChart gridline colors
     <color name="grid_color">#43000000</color>
-<!--    <color name="grid_color">#FFFFFF</color>-->
+    //BarChart in limits colors
+    <color name="below_limit">#43D500</color>
+    <color name="over_limit">#D50700</color>
+    <!--    <color name="grid_color">#FFFFFF</color>-->
 
 </resources>

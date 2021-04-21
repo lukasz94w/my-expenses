@@ -8,17 +8,17 @@
         android:id="@+id/imageTransaction"
         android:layout_width="45dp"
         android:layout_height="45dp"
-        android:layout_alignParentLeft="true" />
+        android:layout_alignParentStart="true" />
 
     <TextView
         android:id="@+id/nameTransaction"
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
-        android:textSize="18dp"
+        android:textSize="18sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="5dp"
-        android:layout_toRightOf="@id/imageTransaction" />
+        android:layout_marginStart="5dp"
+        android:layout_toEndOf="@id/imageTransaction" />
 
     <TextView
         android:id="@+id/amountTransaction"
@@ -28,7 +28,7 @@
         android:textStyle="bold"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toLeftOf="@id/iconTransaction" />
+        android:layout_toStartOf="@id/iconTransaction" />
 
     <ImageView
         android:id="@+id/iconTransaction"
@@ -36,6 +36,6 @@
         android:layout_height="30dp"
         android:src="@drawable/money"
         android:layout_centerVertical="true"
-        android:layout_alignParentRight="true" />
+        android:layout_alignParentEnd="true" />
 
 </RelativeLayout>

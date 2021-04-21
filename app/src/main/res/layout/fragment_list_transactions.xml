@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragment.LastTransactionsFragment">
+    tools:context=".fragment.ListTransactionsFragment">
 
     <RelativeLayout
         android:id="@+id/navigation_bar"
@@ -18,17 +18,18 @@
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_gravity="center_vertical"
-            android:layout_marginLeft="5dp"
+            android:layout_marginStart="5dp"
             android:clickable="true"
             android:background="@android:color/transparent"
-            android:src="@drawable/left_arrow" />
+            android:src="@drawable/left_arrow"
+            android:focusable="true" />
 
         <TextView
             android:id="@+id/actualChosenMonth"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
-            android:layout_toRightOf="@id/previousMonthButton"
+            android:layout_toEndOf="@id/previousMonthButton"
             android:textSize="18sp" />
 
         <ImageButton
@@ -36,26 +37,27 @@
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_gravity="center_vertical"
-            android:layout_toRightOf="@id/actualChosenMonth"
+            android:layout_toEndOf="@id/actualChosenMonth"
             android:background="@android:color/transparent"
             android:clickable="true"
-            android:src="@drawable/right_arrow" />
+            android:src="@drawable/right_arrow"
+            android:focusable="true" />
 
         <ImageView
             android:id="@+id/moneyIcon"
             android:layout_width="30dp"
             android:layout_height="30dp"
-            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
             android:layout_centerInParent="true"
             android:layout_gravity="center"
-            android:layout_marginRight="5dp"
+            android:layout_marginEnd="5dp"
             android:src="@drawable/money" />
 
         <TextView
             android:id="@+id/monthlyTransactionSum"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_toLeftOf="@id/moneyIcon"
+            android:layout_toStartOf="@id/moneyIcon"
             android:gravity="center_vertical"
             android:textSize="22sp"
             android:textStyle="bold" />
@@ -80,10 +82,10 @@
         android:id="@+id/add_transaction_action_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:layout_gravity="end|bottom"
-        android:layout_marginRight="16dp"
+        android:layout_marginEnd="16dp"
         android:layout_marginBottom="29dp"
         android:src="@drawable/add_transaction"
         android:padding="0dp"
