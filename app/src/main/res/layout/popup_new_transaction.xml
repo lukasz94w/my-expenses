@@ -92,7 +92,7 @@
             android:textStyle="bold" />
 
         <Button
-            android:id="@+id/chooseTodayTommorow"
+            android:id="@+id/chooseTodayTomorrow"
             android:layout_width="0dp"
             android:layout_height="45dp"
             android:layout_marginStart="2dp"

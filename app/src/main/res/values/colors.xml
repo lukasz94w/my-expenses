@@ -19,6 +19,10 @@
 
     <color name="barChartLimits">#94E1E1</color>
 
+    //sum colors
+    <color name="sum_greater_than_zero">#4BA70A</color>
+    <color name="sum_lesser_than_zero">#808080</color>
+    <color name="limit_reached">#CD4242</color>
 
     //PieChartOuter colors
     <color name="car_color">#D40F02</color>

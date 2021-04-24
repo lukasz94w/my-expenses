@@ -58,7 +58,7 @@
         android:layout_below="@+id/dailyLimit"
         android:layout_toStartOf="@id/dailyLimitSetAmountIcon"
         android:layout_marginTop="3dp"
-        android:textColor="@color/black"
+        android:textStyle="bold"
         android:textSize="18sp" />
 
     <TextView
@@ -89,7 +89,7 @@
         android:layout_below="@+id/dailyLimitSet"
         android:layout_marginTop="3dp"
         android:layout_toStartOf="@id/dailyLimitLeftAmountIcon"
-        android:textColor="@color/black"
+        android:textStyle="bold"
         android:textSize="18sp" />
 
     <TextView
@@ -132,7 +132,7 @@
         android:layout_below="@+id/monthlyLimit"
         android:layout_toStartOf="@id/monthlyLimitSetAmountIcon"
         android:layout_marginTop="3dp"
-        android:textColor="@color/black"
+        android:textStyle="bold"
         android:textSize="18sp" />
 
     <TextView
@@ -163,7 +163,7 @@
         android:layout_below="@+id/monthlyLimitSet"
         android:layout_toStartOf="@id/monthlyLimitLeftAmountIcon"
         android:layout_marginTop="3dp"
-        android:textColor="@color/black"
+        android:textStyle="bold"
         android:textSize="18sp" />
 
     <View
@@ -192,7 +192,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:textSize="15.5sp"
-        android:text="Monthly expenses"
+        android:text="@string/monthly_expenses"
         android:layout_below="@id/separator"
         android:layout_toEndOf="@id/expenseIcon"/>
 
@@ -202,6 +202,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/separator"
         android:layout_marginTop="7dp"
+        android:textStyle="bold"
         android:textSize="17.5sp"
         android:layout_toStartOf="@id/expenseTotalSumIcon"/>
 

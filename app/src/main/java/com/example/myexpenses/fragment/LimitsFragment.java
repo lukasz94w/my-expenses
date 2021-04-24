@@ -39,6 +39,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.IntStream;
 
 import static android.content.Context.LAYOUT_INFLATER_SERVICE;
@@ -56,7 +57,7 @@ public class LimitsFragment extends Fragment implements View.OnClickListener, Vi
     private Float monthlyLimit;
 
     private int numberOfDaysInMonth;
-    private ArrayList<Transaction> monthlyExpenses;
+    private List<Transaction> monthlyExpenses;
     private double sumOfDailyExpenses;
     private double sumOfMonthlyExpenses;
     private BarChart monthlyBarChart;
@@ -86,7 +87,7 @@ public class LimitsFragment extends Fragment implements View.OnClickListener, Vi
 
         @Override
         public int getColor(int index) {
-            if(getEntryForIndex(index).getY() < monthlyLimit)
+            if (getEntryForIndex(index).getY() < monthlyLimit)
                 return mColors.get(0);
             else
                 return mColors.get(1);
@@ -101,7 +102,7 @@ public class LimitsFragment extends Fragment implements View.OnClickListener, Vi
         sharedPreferences = this.getActivity().getSharedPreferences("Limits", MODE_PRIVATE);
 
         Calendar calendar = Calendar.getInstance();
-        int currentMonth = calendar.get(Calendar.MONTH) + 1; //month index start at 0
+        int currentMonth = calendar.get(Calendar.MONTH);
         int currentMonthYear = calendar.get(Calendar.YEAR);
         numberOfDaysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
 
@@ -145,7 +146,7 @@ public class LimitsFragment extends Fragment implements View.OnClickListener, Vi
         setDailyLimitButton.setOnClickListener(this);
 
         TextView expenseTotalSum = view.findViewById(R.id.expenseTotalSum);
-        expenseTotalSum.setText(String.format("%.2f", sumOfMonthlyExpenses));
+        expenseTotalSum.setText(String.format("-%.2f", sumOfMonthlyExpenses));
 
         TextView expenseMonthlyAverage = view.findViewById(R.id.expenseMonthlyAverage);
         expenseMonthlyAverage.setText(String.format("Average: %.2f / day", sumOfMonthlyExpenses / numberOfDaysInMonth));
@@ -240,8 +241,24 @@ public class LimitsFragment extends Fragment implements View.OnClickListener, Vi
         dailyLimitSetAmount.setText(String.format("%.2f", dailyLimit));
         monthlyLimitSetAmount.setText(String.format("%.2f", monthlyLimit));
 
-        dailyLimitLeftAmount.setText(String.format("%.2f", dailyLimit - sumOfDailyExpenses));
-        monthlyLimitLeftAmount.setText(String.format("%.2f", monthlyLimit - sumOfMonthlyExpenses));
+        double dailyLimitLeft = dailyLimit - sumOfDailyExpenses;
+        double monthlyLimitLeft = monthlyLimit - sumOfMonthlyExpenses;
+
+        if (dailyLimitLeft < 0) {
+            dailyLimitLeftAmount.setText(String.format("%.2f", dailyLimitLeft));
+            dailyLimitLeftAmount.setTextColor(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.limit_reached));
+        } else {
+            dailyLimitLeftAmount.setText(String.format("+%.2f", dailyLimitLeft));
+            dailyLimitLeftAmount.setTextColor(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.sum_greater_than_zero));
+        }
+
+        if (monthlyLimitLeft < 0) {
+            monthlyLimitLeftAmount.setText(String.format("%.2f", monthlyLimitLeft));
+            monthlyLimitLeftAmount.setTextColor(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.limit_reached));
+        } else {
+            monthlyLimitLeftAmount.setText(String.format("+%.2f", monthlyLimitLeft));
+            monthlyLimitLeftAmount.setTextColor(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.sum_greater_than_zero));
+        }
 
         drawMonthlyExpensesBarChart();
     }
@@ -323,10 +340,9 @@ public class LimitsFragment extends Fragment implements View.OnClickListener, Vi
         }
 
         monthlyBarChart.getAxisLeft().setAxisMinimum(-(sumOfExpensesInMonth * 0.075f)); //make additional space between bottom of the chart and labels
-        if(sumOfExpensesInMonth < monthlyLimit) {
+        if (sumOfExpensesInMonth < monthlyLimit) {
             monthlyBarChart.getAxisLeft().setAxisMaximum(monthlyLimit * 1.075f);
-        }
-        else {
+        } else {
             monthlyBarChart.getAxisLeft().setAxisMaximum(sumOfExpensesInMonth * 1.075f);
         }
 
@@ -336,10 +352,10 @@ public class LimitsFragment extends Fragment implements View.OnClickListener, Vi
             barEntriesOfCurrentCategoryInMonth.add(new BarEntry(holderOfBarEntries.get(m).getxVal(), holderOfBarEntries.get(m).getyVal()));
         }
 
-        MyBarDataSet myBarDataSet= new MyBarDataSet(barEntriesOfCurrentCategoryInMonth,"");
+        MyBarDataSet myBarDataSet = new MyBarDataSet(barEntriesOfCurrentCategoryInMonth, "");
         myBarDataSet.setColors(
-                ContextCompat.getColor(getContext(),R.color.below_limit),
-                ContextCompat.getColor(getContext(),R.color.over_limit));
+                ContextCompat.getColor(getContext(), R.color.below_limit),
+                ContextCompat.getColor(getContext(), R.color.over_limit));
         myBarDataSet.setDrawValues(false);
 
         BarData barData = new BarData(myBarDataSet);
@@ -354,8 +370,8 @@ public class LimitsFragment extends Fragment implements View.OnClickListener, Vi
             case R.id.setDailyLimit: {
                 final int DRAWABLE_RIGHT = 2;
 
-                if(event.getAction() == MotionEvent.ACTION_UP) {
-                    if(event.getRawX() >= (setDailyLimit.getRight() - setDailyLimit.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width())) {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    if (event.getRawX() >= (setDailyLimit.getRight() - setDailyLimit.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width())) {
                         setDailyLimit.setText("");
                         v.performClick();
                         return false;
@@ -366,8 +382,8 @@ public class LimitsFragment extends Fragment implements View.OnClickListener, Vi
             case R.id.setMonthlyLimit: {
                 final int DRAWABLE_RIGHT = 2;
 
-                if(event.getAction() == MotionEvent.ACTION_UP) {
-                    if(event.getRawX() >= (setMonthlyLimit.getRight() - setMonthlyLimit.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width())) {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    if (event.getRawX() >= (setMonthlyLimit.getRight() - setMonthlyLimit.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width())) {
                         setMonthlyLimit.setText("");
                         v.performClick();
                         return false;

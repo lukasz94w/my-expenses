@@ -6,15 +6,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 
-import androidx.annotation.Nullable;
-
 import com.example.myexpenses.model.Item;
 
 import java.util.ArrayList;
 
 public class ItemAdapter extends ArrayAdapter<Item> {
     private LayoutInflater mInflater;
-    private ArrayList<Item> items;
 
     public enum RowType {
         LIST_ITEM, HEADER_ITEM
@@ -22,7 +19,6 @@ public class ItemAdapter extends ArrayAdapter<Item> {
 
     public ItemAdapter(Activity context, ArrayList<Item> items) {
         super(context, 0, items);
-        this.items = items;
         mInflater = LayoutInflater.from(context);
     }
 

@@ -11,6 +11,7 @@ import com.example.myexpenses.model.Transaction;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
 public class TransactionRepository extends SQLiteOpenHelper {
@@ -79,40 +80,39 @@ public class TransactionRepository extends SQLiteOpenHelper {
         return transactionList;
     }
 
-    public ArrayList<Transaction> findExpensesInMonth(int month, int year) {
-        Long startOfMonthUnix;
-        Long endOfMonthUnix;
-        ArrayList<Transaction> transactionList;
-        {
-            Calendar calendar = Calendar.getInstance();
-            calendar.set(Calendar.MONTH, month - 1);
-            calendar.set(Calendar.YEAR, year);
-            calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMinimum(Calendar.DAY_OF_MONTH));
-            calendar.set(Calendar.HOUR_OF_DAY, 0);
-            calendar.set(Calendar.MINUTE, 0);
-            calendar.set(Calendar.SECOND, 0);
-            calendar.set(Calendar.MILLISECOND, 0);
-            startOfMonthUnix  = calendar.getTime().getTime();
-        }
+    public List<Transaction> findTransactionsInMonth(int month, int year) {
+        List<Long> monthBoundaries = getMonthBoundaries(month, year);
+        Long dateFrom = monthBoundaries.get(0);
+        Long dateTo = monthBoundaries.get(1);
+        List<Transaction> transactionList = new LinkedList<>();
 
-        {
-            Calendar calendar = Calendar.getInstance();
-            calendar.set(Calendar.MONTH, month - 1);
-            calendar.set(Calendar.DAY_OF_MONTH, 1); //problem of 29 march
-            calendar.set(Calendar.YEAR, year);
-            calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
-            calendar.set(Calendar.HOUR_OF_DAY, 23);
-            calendar.set(Calendar.MINUTE, 59);
-            calendar.set(Calendar.SECOND, 59);
-            calendar.set(Calendar.MILLISECOND, 999);
-            endOfMonthUnix = calendar.getTime().getTime();
+        String selectQuery = "SELECT * FROM " + TABLE_TRANSACTION + " WHERE " + TRANSACTION_DATE + " >= " + dateFrom + " AND " + TRANSACTION_DATE + " < " + dateTo
+                + " ORDER BY " + TRANSACTION_TYPE + " DESC";
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                Transaction transaction = new Transaction();
+                transaction.setId(cursor.getInt(0));
+                transaction.setType(cursor.getInt(1));
+                transaction.setName(cursor.getString(2));
+                transaction.setAmount(Float.parseFloat(cursor.getString(3)));
+                transaction.setCategory(cursor.getString(4));
+                transaction.setDate(new Date(cursor.getLong(5)));
+
+                transactionList.add(transaction);
+            } while (cursor.moveToNext());
         }
-        transactionList = findExpensesBetweenDates(startOfMonthUnix, endOfMonthUnix);
         return transactionList;
     }
 
-    public ArrayList<Transaction> findExpensesBetweenDates(Long dateFrom, Long dateTo) {
-        ArrayList<Transaction> transactionList = new ArrayList<>();
+    public List<Transaction> findExpensesInMonth(int month, int year) {
+        List<Long> monthBoundaries = getMonthBoundaries(month, year);
+        Long dateFrom = monthBoundaries.get(0);
+        Long dateTo = monthBoundaries.get(1);
+        List<Transaction> expensesList = new LinkedList<>();
 
         String selectQuery = "SELECT * FROM " + TABLE_TRANSACTION + " WHERE " + TRANSACTION_DATE + " >= " + dateFrom + " AND " + TRANSACTION_DATE + " <= " + dateTo + " AND type = 1";
 
@@ -129,141 +129,20 @@ public class TransactionRepository extends SQLiteOpenHelper {
                 transaction.setCategory(cursor.getString(4));
                 transaction.setDate(new Date(cursor.getLong(5)));
 
-                transactionList.add(transaction);
+                expensesList.add(transaction);
             } while (cursor.moveToNext());
         }
-        return transactionList;
+        return expensesList;
     }
 
-
-    public ArrayList<Transaction> findTransactionsInMonth(int month, int year) {
-        Long startOfMonthUnix;
-        Long endOfMonthUnix;
-        ArrayList<Transaction> transactionList;
-        {
-            Calendar calendar = Calendar.getInstance();
-            calendar.set(Calendar.MONTH, month - 1);
-            calendar.set(Calendar.YEAR, year);
-            calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMinimum(Calendar.DAY_OF_MONTH));
-            calendar.set(Calendar.HOUR_OF_DAY, 0);
-            calendar.set(Calendar.MINUTE, 0);
-            calendar.set(Calendar.SECOND, 0);
-            calendar.set(Calendar.MILLISECOND, 0);
-            startOfMonthUnix  = calendar.getTime().getTime();
-        }
-
-        {
-            Calendar calendar = Calendar.getInstance();
-            calendar.set(Calendar.MONTH, month - 1);
-            calendar.set(Calendar.DAY_OF_MONTH, 1); //problem of 29 march
-            calendar.set(Calendar.YEAR, year);
-            calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
-            calendar.set(Calendar.HOUR_OF_DAY, 23);
-            calendar.set(Calendar.MINUTE, 59);
-            calendar.set(Calendar.SECOND, 59);
-            calendar.set(Calendar.MILLISECOND, 999);
-            endOfMonthUnix = calendar.getTime().getTime();
-        }
-        transactionList = findTransactionsBetweenDates(startOfMonthUnix, endOfMonthUnix);
-        return transactionList;
-    }
-
-    public ArrayList<Transaction> findTransactionsBetweenDates(Long dateFrom, Long dateTo) {
-        ArrayList<Transaction> transactionList = new ArrayList<>();
-
-        String selectQuery = "SELECT * FROM " + TABLE_TRANSACTION + " WHERE " + TRANSACTION_DATE + " >= " + dateFrom + " AND " + TRANSACTION_DATE + " < " + dateTo
-                + " ORDER BY " + TRANSACTION_TYPE + " DESC";
-
-//        //not needed since I sort list by dates by Collections.sort
-//        String selectQuery = "SELECT * FROM " + TABLE_TRANSACTION + " WHERE " + TRANSACTION_DATE + " >= " + dateFrom + " AND " + TRANSACTION_DATE + " < " + dateTo +
-//                " ORDER BY " + TRANSACTION_DATE;
+    public List<Transaction> search(String keyword, int month, int year) {
+        List<Long> monthBoundaries = getMonthBoundaries(month, year);
+        Long dateFrom = monthBoundaries.get(0);
+        Long dateTo = monthBoundaries.get(1);
+        List<Transaction> transactionList = new LinkedList<>();
 
         SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery(selectQuery, null);
-
-        if (cursor.moveToFirst()) {
-            do {
-                Transaction transaction = new Transaction();
-                transaction.setId(cursor.getInt(0));
-                transaction.setType(cursor.getInt(1));
-                transaction.setName(cursor.getString(2));
-                transaction.setAmount(Float.parseFloat(cursor.getString(3)));
-                transaction.setCategory(cursor.getString(4));
-                transaction.setDate(new Date(cursor.getLong(5)));
-
-                transactionList.add(transaction);
-            } while (cursor.moveToNext());
-        }
-        return transactionList;
-    }
-
-    public ArrayList<Transaction> search(String keyword) {
-        ArrayList<Transaction> transactionList = new ArrayList<>();
-
-        SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_TRANSACTION + " WHERE " + TRANSACTION_NAME + " LIKE ?",  new String[] { "%" + keyword + "%" });
-
-        if (cursor.moveToFirst()) {
-            do {
-                Transaction transaction = new Transaction();
-                transaction.setId(cursor.getInt(0));
-                transaction.setType(cursor.getInt(1));
-                transaction.setName(cursor.getString(2));
-                transaction.setAmount(Float.parseFloat(cursor.getString(3)));
-                transaction.setCategory(cursor.getString(4));
-                transaction.setDate(new Date(cursor.getLong(5)));
-
-                transactionList.add(transaction);
-            } while (cursor.moveToNext());
-        }
-        return transactionList;
-    }
-
-    public List<Transaction> findIncomesBetweenDates(Long dateFrom, Long dateTo) {
-        List<Transaction> transactionList = new ArrayList<>();
-
-        String selectQuery = "SELECT * FROM " + TABLE_TRANSACTION + " WHERE " + TRANSACTION_DATE + " >= " + dateFrom + " AND " + TRANSACTION_DATE + " <= " + dateTo + " AND type = 0";
-
-        SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery(selectQuery, null);
-
-        if (cursor.moveToFirst()) {
-            do {
-                Transaction transaction = new Transaction();
-                transaction.setId(cursor.getInt(0));
-                transaction.setType(cursor.getInt(1));
-                transaction.setName(cursor.getString(2));
-                transaction.setAmount(Float.parseFloat(cursor.getString(3)));
-                transaction.setCategory(cursor.getString(4));
-                transaction.setDate(new Date(cursor.getLong(5)));
-
-                transactionList.add(transaction);
-            } while (cursor.moveToNext());
-        }
-        return transactionList;
-    }
-
-    public Integer getSumOfTransactions(Long dateFrom, Long dateTo) {
-        Integer sumOfTransactions = 0;
-
-        String selectQuery = "SELECT SUM(" + TRANSACTION_AMOUNT + ") " + " FROM " + TABLE_TRANSACTION + " WHERE " + TRANSACTION_DATE + " >= " + dateFrom + " AND " + TRANSACTION_DATE + " <= " + dateTo;
-
-        SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery(selectQuery, null);
-
-        if (cursor.moveToFirst()) {
-            sumOfTransactions = cursor.getInt(0);
-        }
-        return sumOfTransactions;
-    }
-
-    public List<Transaction> findLast10Transactions() {
-        List<Transaction> transactionList = new ArrayList<>();
-
-        String selectQuery = "SELECT * FROM transactions ORDER BY date DESC limit 10";
-
-        SQLiteDatabase db = this.getWritableDatabase();
-        Cursor cursor = db.rawQuery(selectQuery, null);
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_TRANSACTION + " WHERE " + TRANSACTION_DATE + " >= " + dateFrom + " AND " + TRANSACTION_DATE + " <= " + dateTo + " AND " + TRANSACTION_NAME + " LIKE ?", new String[]{"%" + keyword + "%"});
 
         if (cursor.moveToFirst()) {
             do {
@@ -296,11 +175,42 @@ public class TransactionRepository extends SQLiteOpenHelper {
 
     public void delete(int id) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.execSQL("DELETE FROM " +  TABLE_TRANSACTION + " WHERE " + TRANSACTION_ID +  " = " + id);
+        db.execSQL("DELETE FROM " + TABLE_TRANSACTION + " WHERE " + TRANSACTION_ID + " = " + id);
     }
 
     public void deleteAllRecords() {
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL("DELETE FROM " + TABLE_TRANSACTION);
+    }
+
+    private List<Long> getMonthBoundaries(int month, int year) {
+        List<Long> monthBoundaries = new LinkedList<>();
+        {
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.MONTH, month);
+            calendar.set(Calendar.YEAR, year);
+            calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMinimum(Calendar.DAY_OF_MONTH));
+            calendar.set(Calendar.HOUR_OF_DAY, 0);
+            calendar.set(Calendar.MINUTE, 0);
+            calendar.set(Calendar.SECOND, 0);
+            calendar.set(Calendar.MILLISECOND, 0);
+            Long startOfMonthUnix = calendar.getTime().getTime();
+            monthBoundaries.add(startOfMonthUnix);
+        }
+
+        {
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.MONTH, month);
+            calendar.set(Calendar.DAY_OF_MONTH, 1); //problem of 29 march
+            calendar.set(Calendar.YEAR, year);
+            calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+            calendar.set(Calendar.HOUR_OF_DAY, 23);
+            calendar.set(Calendar.MINUTE, 59);
+            calendar.set(Calendar.SECOND, 59);
+            calendar.set(Calendar.MILLISECOND, 999);
+            Long endOfMonthUnix = calendar.getTime().getTime();
+            monthBoundaries.add(endOfMonthUnix);
+        }
+        return monthBoundaries;
     }
 }

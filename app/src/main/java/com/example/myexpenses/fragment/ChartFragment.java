@@ -1,5 +1,6 @@
 package com.example.myexpenses.fragment;
 
+import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
@@ -34,12 +35,13 @@ import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.formatter.PercentFormatter;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -49,17 +51,15 @@ import static java.util.stream.Collectors.summingDouble;
 
 public class ChartFragment extends Fragment implements View.OnClickListener {
 
-    //onCreate
     private TransactionRepository transactionRepository;
-    //onCreateView
-    private View view;
-    private ImageView previousMonthButton;
     private TextView actualChosenMonth;
-    private ImageView nextMonthButton;
     private TextView monthlyTransactionSum;
     private RelativeLayout chartContainer;
+    private int currentChosenMonth;
+    private int currentChosenMonthYear;
+    private Calendar calendar;
 
-    private class BarEntryHolder {
+    private static class BarEntryHolder {
         float xVal;
         float yVal;
 
@@ -77,10 +77,14 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         transactionRepository = new TransactionRepository(getContext());
+        calendar = Calendar.getInstance();
+        currentChosenMonth = calendar.get(Calendar.MONTH);
+        currentChosenMonthYear = calendar.get(Calendar.YEAR);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
@@ -88,25 +92,22 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
 
-        view = inflater.inflate(R.layout.fragment_chart, container, false);
+        //onCreateView
+        View view = inflater.inflate(R.layout.fragment_chart, container, false);
 
-        previousMonthButton = view.findViewById(R.id.previousMonthButton);
-        previousMonthButton.setOnClickListener(this);
+        ImageView previousMonth = view.findViewById(R.id.previousMonth);
+        previousMonth.setOnClickListener(this);
 
         actualChosenMonth = view.findViewById(R.id.actualChosenMonth);
 
-        nextMonthButton = view.findViewById(R.id.nextMonthButton);
-        nextMonthButton.setOnClickListener(this);
+        ImageView nextMonth = view.findViewById(R.id.nextMonth);
+        nextMonth.setOnClickListener(this);
 
         monthlyTransactionSum = view.findViewById(R.id.monthlyTransactionSum);
 
         chartContainer = view.findViewById(R.id.chartContainer);
 
-        Calendar calendar = Calendar.getInstance();
-        int currentMonth = calendar.get(Calendar.MONTH) + 1; //month index start at 0
-        int currentYear = calendar.get(Calendar.YEAR);
-
-        updateView(currentMonth, currentYear);
+        updateView();
 
         return view;
     }
@@ -115,29 +116,25 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.previousMonthButton: {
-                int currentChosenMonth = Integer.parseInt(this.actualChosenMonth.getText().toString().substring(0, 2));
-                int currentChosenMonthYear = Integer.parseInt(this.actualChosenMonth.getText().toString().substring(3, 7));
-
-                Integer[] previousMonthInTable = getPreviousMonth(currentChosenMonth, currentChosenMonthYear);
-                int previousMonth = previousMonthInTable[0];
-                int previousMonthYear = previousMonthInTable[1];
-
-                updateView(previousMonth, previousMonthYear);
-
+            case R.id.previousMonth: {
+                if (currentChosenMonth == 0) { //months are indexed starting from zero
+                    currentChosenMonth = 11;
+                    currentChosenMonthYear--;
+                } else {
+                    currentChosenMonth--;
+                }
+                updateView();
                 break;
             }
 
-            case R.id.nextMonthButton: {
-                int currentChosenMonth = Integer.parseInt(this.actualChosenMonth.getText().toString().substring(0, 2));
-                int currentChosenMonthYear = Integer.parseInt(this.actualChosenMonth.getText().toString().substring(3, 7));
-
-                Integer[] nextMonthInTable = getNextMonth(currentChosenMonth, currentChosenMonthYear);
-                int nextMonth = nextMonthInTable[0];
-                int nextMonthYear = nextMonthInTable[1];
-
-                updateView(nextMonth, nextMonthYear);
-
+            case R.id.nextMonth: {
+                if (currentChosenMonth == 11) { //months are indexed starting from zero
+                    currentChosenMonth = 0;
+                    currentChosenMonthYear++;
+                } else {
+                    currentChosenMonth++;
+                }
+                updateView();
                 break;
             }
 
@@ -146,21 +143,26 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
         }
     }
 
+    @SuppressLint("DefaultLocale")
     @RequiresApi(api = Build.VERSION_CODES.N)
-    private void updateView(int currentChosenMonth, int currentChosenMonthYear) {
-
-        Calendar calendar = Calendar.getInstance();
+    private void updateView() {
         calendar.set(Calendar.MONTH, currentChosenMonth - 1);
         calendar.set(Calendar.YEAR, currentChosenMonthYear);
         int numberOfDaysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
 
-        ArrayList<Transaction> monthTransactions = transactionRepository.findTransactionsInMonth(currentChosenMonth, currentChosenMonthYear);
+        List<Transaction> monthTransactions = transactionRepository.findTransactionsInMonth(currentChosenMonth, currentChosenMonthYear);
         double totalSum = monthTransactions.stream()
-                .mapToDouble(o -> o.getAmount())
+                .mapToDouble(Transaction::getAmount)
                 .sum();
 
-        actualChosenMonth.setText(convertMonthToString(currentChosenMonth, currentChosenMonthYear));
-        setMonthlyTransactionSum(totalSum);
+        actualChosenMonth.setText(convertMonthToString(currentChosenMonth + 1, currentChosenMonthYear)); //months are indexed starting from zero
+        if (totalSum >= 0) {
+            monthlyTransactionSum.setText(String.format("+%.2f", totalSum));
+            monthlyTransactionSum.setTextColor(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.ColorPrimary));
+        } else {
+            monthlyTransactionSum.setText(String.format("%.2f", totalSum));
+            monthlyTransactionSum.setTextColor(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.bacgroundColorPopup));
+        }
 
         chartContainer.removeAllViews();
         drawMonthlyTransactionOuterPieChart(monthTransactions, numberOfDaysInMonth, totalSum);
@@ -168,18 +170,8 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
         drawMonthlyTransactionBarCharts(monthTransactions, numberOfDaysInMonth);
     }
 
-    private void setMonthlyTransactionSum(double totalSum) {
-        if (totalSum >= 0) {
-            monthlyTransactionSum.setText(String.format("+%.2f", totalSum));
-            monthlyTransactionSum.setTextColor(ContextCompat.getColor(getContext(), R.color.ColorPrimary));
-        } else {
-            monthlyTransactionSum.setText(String.format("%.2f", totalSum));
-            monthlyTransactionSum.setTextColor(ContextCompat.getColor(getContext(), R.color.bacgroundColorPopup));
-        }
-    }
-
     @RequiresApi(api = Build.VERSION_CODES.N)
-    private void drawMonthlyTransactionOuterPieChart(ArrayList<Transaction> monthTransactions, int numberOfDaysInMonth, double totalSum) {
+    private void drawMonthlyTransactionOuterPieChart(List<Transaction> monthTransactions, int numberOfDaysInMonth, double totalSum) {
         PieChart pieChart = new PieChart(getContext());
         Legend legendInner = pieChart.getLegend();
         legendInner.setEnabled(false);
@@ -203,7 +195,7 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
         layoutParamsForBarOuterPieChart.addRule(RelativeLayout.CENTER_HORIZONTAL);
 
         //check if there are data to present on pieChart, if not set no data communicate
-        if(monthTransactions.size() > 0) {
+        if (monthTransactions.size() > 0) {
             layoutParamsForBarOuterPieChart.setMargins(0, 10, 0, 0); //margin for PieChart with data
 
             //prepare map which contains sum of transactions with the same category
@@ -211,15 +203,15 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
             Map<String, Double> map = monthTransactions.stream().
                     collect(groupingBy(Transaction::getCategory, LinkedHashMap::new, summingDouble(Transaction::getAmount)));
 
-            ArrayList<Integer> transactionColor = new ArrayList<>();
-            ArrayList<PieEntry> transactionValue = new ArrayList<>();
+            List<Integer> transactionColor = new LinkedList<>();
+            List<PieEntry> transactionValue = new LinkedList<>();
 
             for (Map.Entry<String, Double> entry : map.entrySet()) {
                 //prepare values for PieChart
                 transactionValue.add(new PieEntry(Math.abs(entry.getValue().floatValue()), entry.getKey()));
                 //prepare colors for values
                 String colorName = (entry.getKey() + "_color").toLowerCase().replace(" ", "_");
-                int colorId = getContext().getResources().getColor(getContext().getResources().getIdentifier(colorName, "color", getContext().getPackageName()));
+                int colorId = Objects.requireNonNull(getContext()).getResources().getColor(getContext().getResources().getIdentifier(colorName, "color", getContext().getPackageName()));
                 transactionColor.add(colorId);
             }
 
@@ -237,7 +229,7 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
             int idMonthlyTransactionAverage = 2;
             monthlyTransactionAverage.setId(idMonthlyTransactionAverage);
             monthlyTransactionAverage.setTextSize(15);
-            String text = String.format("Average: %.2f / day", totalSum / numberOfDaysInMonth);
+            @SuppressLint("DefaultLocale") String text = String.format("Average: %.2f / day", totalSum / numberOfDaysInMonth);
             monthlyTransactionAverage.setText(text);
             RelativeLayout.LayoutParams layoutParamsForMonthlyTransactionAverage = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             layoutParamsForMonthlyTransactionAverage.addRule(RelativeLayout.BELOW, pieChart.getId()); //show below outerPieChart
@@ -248,7 +240,7 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    private void drawMonthlyTransactionInnerPieChart(ArrayList<Transaction> monthTransactions) {
+    private void drawMonthlyTransactionInnerPieChart(List<Transaction> monthTransactions) {
         PieChart pieChart = new PieChart(getContext());
         Legend legendInner = pieChart.getLegend();
         legendInner.setEnabled(false);
@@ -264,14 +256,14 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
         layoutParamsForBarInnerPieChart.addRule(RelativeLayout.CENTER_HORIZONTAL);
 
         //check if there are data to present on pieChart, if not set no data communicate
-        if(monthTransactions.size() > 0) {
+        if (monthTransactions.size() > 0) {
             //prepare map which contains sum of transactions with the same category
             //by using LinkedHashMap I keep order needed when outer and inner charts are drawn
             Map<Integer, Double> map = monthTransactions.stream().
                     collect(groupingBy(Transaction::getType, LinkedHashMap::new, summingDouble(Transaction::getAmount)));
 
-            ArrayList<Integer> transactionColor = new ArrayList<>();
-            ArrayList<PieEntry> transactionValue = new ArrayList<>();
+            List<Integer> transactionColor = new LinkedList<>();
+            List<PieEntry> transactionValue = new LinkedList<>();
 
             for (Map.Entry<Integer, Double> entry : map.entrySet()) {
                 //prepare values for PieChart
@@ -283,7 +275,7 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
                 } else {
                     colorName = ("incomes_color").toLowerCase().replace(" ", "_");
                 }
-                int colorId = getContext().getResources().getColor(getContext().getResources().getIdentifier(colorName, "color", getContext().getPackageName()));
+                int colorId = Objects.requireNonNull(getContext()).getResources().getColor(getContext().getResources().getIdentifier(colorName, "color", getContext().getPackageName()));
                 transactionColor.add(colorId);
             }
 
@@ -300,15 +292,15 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    private void drawMonthlyTransactionBarCharts(ArrayList<Transaction> monthTransactions, int numberOfDaysInMonth) {
+    private void drawMonthlyTransactionBarCharts(List<Transaction> monthTransactions, int numberOfDaysInMonth) {
         //return lists of transactions from whole month grouped by category (f.e. sport, health)
-        ArrayList<List<Transaction>> listsOfMonthTransactionsGroupedByCategory = new ArrayList<>(
+        List<List<Transaction>> listsOfMonthTransactionsGroupedByCategory = new LinkedList<>(
                 monthTransactions.stream()
                         .collect(Collectors.groupingBy(Transaction::getCategory))
                         .values());
 
         int numberOfBarChartsToDraw = listsOfMonthTransactionsGroupedByCategory.size();
-        ArrayList<ArrayList> listsOfBarEntries = new ArrayList<>();
+        List<List<BarEntry>> listsOfBarEntries = new LinkedList<>();
 
         for (int i = 0; i < numberOfBarChartsToDraw; i++) {
 
@@ -332,11 +324,9 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
             xAxis.setTextSize(12);
             if (numberOfDaysInMonth == 31) {
                 xAxis.setAxisMaximum(31);
-            }
-            else if (numberOfDaysInMonth == 30){
+            } else if (numberOfDaysInMonth == 30) {
                 xAxis.setAxisMaximum(29.5f); //to last bar look better
-            }
-            else xAxis.setAxisMaximum(28); //february leap and non-leap year
+            } else xAxis.setAxisMaximum(28); //february leap and non-leap year
             xAxis.setValueFormatter(new ValueFormatter() {
                 @Override
                 public String getFormattedValue(float value) {
@@ -344,7 +334,7 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
                 }
             });
 
-            ArrayList<BarEntryHolder> holderOfBarEntries = new ArrayList<>();
+            List<BarEntryHolder> holderOfBarEntries = new LinkedList<>();
             float sumOfTransactionsOfCurrentCategoryInMonth = 0;
             float maximumTransactionValueOfCurrentCategoryInMonth = 0;
 
@@ -363,11 +353,10 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
                         .filter(k -> holderOfBarEntries.get(k).getxVal() == dayOfTransaction)
                         .findFirst()
                         .orElse(-1);
-                if (index != -1 ) {
+                if (index != -1) {
                     float currentDayTotalSumOfTransactions = holderOfBarEntries.get(index).getyVal();
                     holderOfBarEntries.set(index, new BarEntryHolder(dayOfTransaction, currentDayTotalSumOfTransactions + valueOfTransaction));
-                }
-                else {
+                } else {
                     holderOfBarEntries.add(new BarEntryHolder(dayOfTransaction, valueOfTransaction));
                 }
 
@@ -378,7 +367,7 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
             }
             barChart.getAxisLeft().setAxisMinimum(-(maximumTransactionValueOfCurrentCategoryInMonth * 0.075f)); //make additional space between bottom of the chart and labels
             //copy data from barEntryHolder to barEntriesList
-            ArrayList barEntriesOfCurrentCategoryInMonth = new ArrayList<>();
+            List<BarEntry> barEntriesOfCurrentCategoryInMonth = new LinkedList();
             for (int m = 0; m < holderOfBarEntries.size(); m++) {
                 barEntriesOfCurrentCategoryInMonth.add(new BarEntry(holderOfBarEntries.get(m).getxVal(), holderOfBarEntries.get(m).getyVal()));
             }
@@ -407,7 +396,7 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
             ImageView categoryImage = new ImageView(getContext());
             categoryImage.setId(i * 10 + 4);
             String categoryImageResource = listsOfMonthTransactionsGroupedByCategory.get(i).get(0).getCategory().toLowerCase().replace(" ", "_"); //prepare R.drawable.name: toLowerCase() because Android restrict Drawable filenames to not use Capital letters in their names, and also simple replace
-            int res = getContext().getResources().getIdentifier(categoryImageResource, "drawable", getContext().getPackageName());
+            int res = Objects.requireNonNull(getContext()).getResources().getIdentifier(categoryImageResource, "drawable", getContext().getPackageName());
             categoryImage.setImageResource(res);
             RelativeLayout.LayoutParams layoutParamsForCategoryImage = new RelativeLayout.LayoutParams(80, 80);
             layoutParamsForCategoryImage.addRule(RelativeLayout.BELOW, separatorLine.getId());
@@ -438,9 +427,9 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
             totalAmountForMonth.setTextSize(17);
             totalAmountForMonth.setTypeface(null, Typeface.BOLD);
             if (listsOfMonthTransactionsGroupedByCategory.get(i).get(0).getType() == 1) {
-                sumOfTransactionsOfCurrentCategoryInMonth = - sumOfTransactionsOfCurrentCategoryInMonth; //if it's expense
+                sumOfTransactionsOfCurrentCategoryInMonth = -sumOfTransactionsOfCurrentCategoryInMonth; //if it's expense
             }
-            String totalAmountForMonthText = String.format("%.2f", sumOfTransactionsOfCurrentCategoryInMonth);
+            @SuppressLint("DefaultLocale") String totalAmountForMonthText = String.format("%.2f", sumOfTransactionsOfCurrentCategoryInMonth);
             totalAmountForMonth.setText(totalAmountForMonthText);
             RelativeLayout.LayoutParams layoutParamsForTotalAmountForMonth = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             layoutParamsForTotalAmountForMonth.addRule(RelativeLayout.BELOW, separatorLine.getId());
@@ -451,7 +440,7 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
             TextView averageForMonth = new TextView(getContext());
             averageForMonth.setId(i * 10 + 8);
             averageForMonth.setTextSize(15);
-            String averageForMonthText = String.format("Average: %.2f / day", sumOfTransactionsOfCurrentCategoryInMonth / numberOfDaysInMonth);
+            @SuppressLint("DefaultLocale") String averageForMonthText = String.format("Average: %.2f / day", sumOfTransactionsOfCurrentCategoryInMonth / numberOfDaysInMonth);
             averageForMonth.setText(averageForMonthText);
             RelativeLayout.LayoutParams layoutParamsForAverageForMonth = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             layoutParamsForAverageForMonth.addRule(RelativeLayout.BELOW, categoryImage.getId());
@@ -470,45 +459,8 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
         }
     }
 
-    private Integer[] getPreviousMonth(int actualChosenMonth, int actualChosenYear) {
-        int previousMonth;
-        int previousMonthYear;
-        Integer[] previousMonthInTable = new Integer[2];
-
-        if (actualChosenMonth == 1) {
-            previousMonth = 12;
-            previousMonthYear = actualChosenYear - 1;
-        } else {
-            previousMonth = actualChosenMonth - 1;
-            previousMonthYear = actualChosenYear;
-        }
-        previousMonthInTable[0] = previousMonth;
-        previousMonthInTable[1] = previousMonthYear;
-
-        return previousMonthInTable;
-    }
-
-    private Integer[] getNextMonth(int actualChosenMonth, int actualChosenYear) {
-        int nextMonth;
-        int nextMonthYear;
-        Integer[] previousMonthInTable = new Integer[2];
-
-        if (actualChosenMonth == 12) {
-            nextMonth = 1;
-            nextMonthYear = actualChosenYear + 1;
-        } else {
-            nextMonth = actualChosenMonth + 1;
-            nextMonthYear = actualChosenYear;
-        }
-
-        previousMonthInTable[0] = nextMonth;
-        previousMonthInTable[1] = nextMonthYear;
-
-        return previousMonthInTable;
-    }
-
     public String convertMonthToString(int month, int year) {
-        month = month; //months are indexed starting at 0
+        //months are indexed starting at 0
         String MM = "" + month;
         String yyyy = "" + year;
 

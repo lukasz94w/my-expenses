@@ -13,7 +13,7 @@
             android:clickable="false">
 
             <ImageButton
-                android:id="@+id/previousMonthButton"
+                android:id="@+id/previousMonth"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_gravity="center_vertical"
@@ -24,7 +24,7 @@
                 android:focusable="true" />
 
             <ImageButton
-                android:id="@+id/nextMonthButton"
+                android:id="@+id/nextMonth"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_gravity="center_vertical"
@@ -49,7 +49,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
-                android:layout_toEndOf="@id/previousMonthButton"
+                android:layout_toEndOf="@id/previousMonth"
                 android:textSize="18sp" />
 
             <TextView

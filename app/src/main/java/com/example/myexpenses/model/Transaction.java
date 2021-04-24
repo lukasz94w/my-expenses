@@ -104,10 +104,10 @@ public class Transaction implements Comparable<Transaction>, Item {
         double transactionAmountAsDouble = this.amount;
         if (transactionAmountAsDouble >= 0) {
             viewHolder.transactionAmount.setText(String.format("+%.2f", transactionAmountAsDouble));
-            viewHolder.transactionAmount.setTextColor(ContextCompat.getColor(view.getContext(), R.color.ColorPrimary));
+            viewHolder.transactionAmount.setTextColor(ContextCompat.getColor(view.getContext(), R.color.sum_greater_than_zero));
         } else {
             viewHolder.transactionAmount.setText(String.format("%.2f", transactionAmountAsDouble));
-            viewHolder.transactionAmount.setTextColor(ContextCompat.getColor(view.getContext(), R.color.bacgroundColorPopup));
+            viewHolder.transactionAmount.setTextColor(ContextCompat.getColor(view.getContext(), R.color.sum_lesser_than_zero));
         }
 
         int lengthOfTransactionName = this.name.length();
@@ -123,8 +123,6 @@ public class Transaction implements Comparable<Transaction>, Item {
                 additionalSpaceForText = 7 - lengthOfTransactionAmount;
             }
             viewHolder.transactionName.setText(this.name.substring(0, 20 + additionalSpaceForText) + "...");
-        } else if (lengthOfTransactionName == 0) { //if name of transaction is empty we set it as category name
-            viewHolder.transactionName.setText(this.category);
         } else {
             viewHolder.transactionName.setText(this.name);
         }
