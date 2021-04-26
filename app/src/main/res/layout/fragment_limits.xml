@@ -6,6 +6,45 @@
     android:layout_height="match_parent"
     tools:context=".fragment.LimitsFragment">
 
+    <RelativeLayout
+        android:id="@+id/navigation_bar"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:clickable="false"
+        android:background="@color/ColorPrimaryBright">
+
+        <ImageButton
+            android:id="@+id/previousMonth"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="5dp"
+            android:clickable="true"
+            android:background="@android:color/transparent"
+            android:src="@drawable/left_arrow"
+            android:focusable="true" />
+
+        <TextView
+            android:id="@+id/currentChosenMonthAndYear"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@id/previousMonth"
+            android:textSize="18sp" />
+
+        <ImageButton
+            android:id="@+id/nextMonth"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center_vertical"
+            android:layout_toEndOf="@id/currentChosenMonthAndYear"
+            android:background="@android:color/transparent"
+            android:clickable="true"
+            android:src="@drawable/right_arrow"
+            android:focusable="true" />
+
+    </RelativeLayout>
+
     <Button
         android:id="@+id/setDailyLimitButton"
         android:layout_width="match_parent"
@@ -27,6 +66,7 @@
         android:layout_marginStart="14dp"
         android:layout_marginTop="5dp"
         android:text="@string/daily_limit"
+        android:layout_below="@id/navigation_bar"
         android:textColor="@color/black"
         android:textSize="21sp" />
 

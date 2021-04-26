@@ -56,7 +56,7 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
     private TextView monthlyTransactionSum;
     private RelativeLayout chartContainer;
     private int currentChosenMonth;
-    private int currentChosenMonthYear;
+    private int currentChosenYear;
     private Calendar calendar;
 
     private static class BarEntryHolder {
@@ -84,7 +84,7 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
         transactionRepository = new TransactionRepository(getContext());
         calendar = Calendar.getInstance();
         currentChosenMonth = calendar.get(Calendar.MONTH);
-        currentChosenMonthYear = calendar.get(Calendar.YEAR);
+        currentChosenYear = calendar.get(Calendar.YEAR);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
@@ -98,7 +98,7 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
         ImageView previousMonth = view.findViewById(R.id.previousMonth);
         previousMonth.setOnClickListener(this);
 
-        actualChosenMonth = view.findViewById(R.id.actualChosenMonth);
+        actualChosenMonth = view.findViewById(R.id.currentChosenMonthAndYear);
 
         ImageView nextMonth = view.findViewById(R.id.nextMonth);
         nextMonth.setOnClickListener(this);
@@ -119,7 +119,7 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
             case R.id.previousMonth: {
                 if (currentChosenMonth == 0) { //months are indexed starting from zero
                     currentChosenMonth = 11;
-                    currentChosenMonthYear--;
+                    currentChosenYear--;
                 } else {
                     currentChosenMonth--;
                 }
@@ -130,7 +130,7 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
             case R.id.nextMonth: {
                 if (currentChosenMonth == 11) { //months are indexed starting from zero
                     currentChosenMonth = 0;
-                    currentChosenMonthYear++;
+                    currentChosenYear++;
                 } else {
                     currentChosenMonth++;
                 }
@@ -146,16 +146,16 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
     @SuppressLint("DefaultLocale")
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void updateView() {
-        calendar.set(Calendar.MONTH, currentChosenMonth - 1);
-        calendar.set(Calendar.YEAR, currentChosenMonthYear);
+        calendar.set(Calendar.MONTH, currentChosenMonth);
+        calendar.set(Calendar.YEAR, currentChosenYear);
         int numberOfDaysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
 
-        List<Transaction> monthTransactions = transactionRepository.findTransactionsInMonth(currentChosenMonth, currentChosenMonthYear);
+        List<Transaction> monthTransactions = transactionRepository.findTransactionsInMonth(currentChosenMonth, currentChosenYear);
         double totalSum = monthTransactions.stream()
                 .mapToDouble(Transaction::getAmount)
                 .sum();
 
-        actualChosenMonth.setText(convertMonthToString(currentChosenMonth + 1, currentChosenMonthYear)); //months are indexed starting from zero
+        actualChosenMonth.setText(convertMonthToString(currentChosenMonth + 1, currentChosenYear)); //months are indexed starting from zero
         if (totalSum >= 0) {
             monthlyTransactionSum.setText(String.format("+%.2f", totalSum));
             monthlyTransactionSum.setTextColor(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.ColorPrimary));

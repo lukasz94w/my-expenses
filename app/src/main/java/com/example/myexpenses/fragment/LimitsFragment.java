@@ -13,6 +13,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
@@ -47,20 +48,26 @@ import static android.content.Context.MODE_PRIVATE;
 
 public class LimitsFragment extends Fragment implements View.OnClickListener, View.OnTouchListener {
 
-    private SharedPreferences sharedPreferences;
-    private TextView dailyLimitSetAmount, monthlyLimitSetAmount;
-    private TextView dailyLimitLeftAmount, monthlyLimitLeftAmount;
+    //main window
+    private TextView currentChosenMonthAndYear;
+    private TextView dailyLimitSetAmount, dailyLimitLeftAmount;
+    private TextView monthlyLimitSetAmount, monthlyLimitLeftAmount;
+    private TextView expenseTotalSum;
+    private TextView expenseMonthlyAverage;
+    private BarChart monthlyBarChart;
+    //popup
     private PopupWindow popupWindow;
     private EditText setDailyLimit, setMonthlyLimit;
 
+    private TransactionRepository transactionRepository;
+    private SharedPreferences sharedPreferences;
+    private Calendar calendar;
+    private int currentChosenMonth;
+    private int currentChosenYear;
     private Float dailyLimit;
     private Float monthlyLimit;
-
-    private int numberOfDaysInMonth;
-    private List<Transaction> monthlyExpenses;
     private double sumOfDailyExpenses;
     private double sumOfMonthlyExpenses;
-    private BarChart monthlyBarChart;
 
     private static class BarEntryHolder {
         float xVal;
@@ -98,30 +105,16 @@ public class LimitsFragment extends Fragment implements View.OnClickListener, Vi
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //onCreate
-        TransactionRepository transactionRepository = new TransactionRepository(getContext());
-        sharedPreferences = this.getActivity().getSharedPreferences("Limits", MODE_PRIVATE);
+        transactionRepository = new TransactionRepository(getContext());
+        sharedPreferences = this.getActivity().getSharedPreferences("SharedPreferences", MODE_PRIVATE);
 
-        Calendar calendar = Calendar.getInstance();
-        int currentMonth = calendar.get(Calendar.MONTH);
-        int currentMonthYear = calendar.get(Calendar.YEAR);
-        numberOfDaysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+        calendar = Calendar.getInstance();
+        int actualDay = calendar.get(Calendar.DAY_OF_MONTH);
+        currentChosenMonth = calendar.get(Calendar.MONTH);
+        currentChosenYear = calendar.get(Calendar.YEAR);
 
-        calendar.set(Calendar.MILLISECOND, 0);
-        calendar.set(calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH), 0, 0, 0);
-        Date currentDayAsDate = new Date();
-        currentDayAsDate.setTime(calendar.getTime().getTime());
-
-        monthlyExpenses = transactionRepository.findExpensesInMonth(currentMonth, currentMonthYear);
-        Collections.sort(monthlyExpenses); //dates must be in order
-
-        sumOfDailyExpenses = monthlyExpenses.stream()
-                .filter(o -> o.getDate().equals(currentDayAsDate))
-                .mapToDouble(o -> Math.abs(o.getAmount()))
-                .sum();
-
-        sumOfMonthlyExpenses = monthlyExpenses.stream()
-                .mapToDouble(o -> Math.abs(o.getAmount()))
-                .sum();
+        //read it only once
+        sumOfDailyExpenses = Math.abs(transactionRepository.getSumOfDailyExpenses(actualDay, currentChosenMonth, currentChosenYear));
 
         //default values if they not have been initialized yet
         dailyLimit = sharedPreferences.getFloat("Daily limit", 1000);
@@ -134,23 +127,21 @@ public class LimitsFragment extends Fragment implements View.OnClickListener, Vi
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_limits, container, false);
+        ImageView previousMonth = view.findViewById(R.id.previousMonth);
+        previousMonth.setOnClickListener(this);
+        currentChosenMonthAndYear = view.findViewById(R.id.currentChosenMonthAndYear);
+        ImageView nextMonth = view.findViewById(R.id.nextMonth);
+        nextMonth.setOnClickListener(this);
 
         dailyLimitSetAmount = view.findViewById(R.id.dailyLimitSetAmount);
         dailyLimitLeftAmount = view.findViewById(R.id.dailyLimitLeftAmount);
-
         monthlyLimitSetAmount = view.findViewById(R.id.monthlyLimitSetAmount);
         monthlyLimitLeftAmount = view.findViewById(R.id.monthlyLimitLeftAmount);
-
-        //onCreateView
         Button setDailyLimitButton = view.findViewById(R.id.setDailyLimitButton);
         setDailyLimitButton.setOnClickListener(this);
 
-        TextView expenseTotalSum = view.findViewById(R.id.expenseTotalSum);
-        expenseTotalSum.setText(String.format("-%.2f", sumOfMonthlyExpenses));
-
-        TextView expenseMonthlyAverage = view.findViewById(R.id.expenseMonthlyAverage);
-        expenseMonthlyAverage.setText(String.format("Average: %.2f / day", sumOfMonthlyExpenses / numberOfDaysInMonth));
-
+        expenseMonthlyAverage = view.findViewById(R.id.expenseMonthlyAverage);
+        expenseTotalSum = view.findViewById(R.id.expenseTotalSum);
         monthlyBarChart = view.findViewById(R.id.monthlyBarchart);
 
         updateView();
@@ -163,6 +154,27 @@ public class LimitsFragment extends Fragment implements View.OnClickListener, Vi
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
+            case R.id.previousMonth: {
+                if (currentChosenMonth == 0) { //months are indexed starting from zero
+                    currentChosenMonth = 11;
+                    currentChosenYear--;
+                } else {
+                    currentChosenMonth--;
+                }
+                updateView();
+                break;
+            }
+
+            case R.id.nextMonth: {
+                if (currentChosenMonth == 11) { //months are indexed starting from zero
+                    currentChosenMonth = 0;
+                    currentChosenYear++;
+                } else {
+                    currentChosenMonth++;
+                }
+                updateView();
+                break;
+            }
             case R.id.setDailyLimitButton: {
                 // inflate the layout of the popup window
                 LayoutInflater inflater = (LayoutInflater) getActivity().getSystemService(LAYOUT_INFLATER_SERVICE);
@@ -237,35 +249,46 @@ public class LimitsFragment extends Fragment implements View.OnClickListener, Vi
     @SuppressLint("DefaultLocale")
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void updateView() {
+        currentChosenMonthAndYear.setText(convertMonthToString(currentChosenMonth + 1, currentChosenYear)); //months are indexed starting from zero
+
+        calendar.set(Calendar.MONTH, currentChosenMonth);
+        calendar.set(Calendar.YEAR, currentChosenYear);
+        int numberOfDaysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
+
+        List<Transaction> monthlyExpenses = transactionRepository.findExpensesInMonth(currentChosenMonth, currentChosenYear);
+        Collections.sort(monthlyExpenses); //dates must be in order
+
+        sumOfMonthlyExpenses = monthlyExpenses.stream()
+                .mapToDouble(o -> Math.abs(o.getAmount()))
+                .sum();
 
         dailyLimitSetAmount.setText(String.format("%.2f", dailyLimit));
         monthlyLimitSetAmount.setText(String.format("%.2f", monthlyLimit));
 
-        double dailyLimitLeft = dailyLimit - sumOfDailyExpenses;
-        double monthlyLimitLeft = monthlyLimit - sumOfMonthlyExpenses;
-
-        if (dailyLimitLeft < 0) {
-            dailyLimitLeftAmount.setText(String.format("%.2f", dailyLimitLeft));
+        if (dailyLimit - sumOfDailyExpenses < 0) {
+            dailyLimitLeftAmount.setText(String.format("%.2f", dailyLimit - sumOfDailyExpenses));
             dailyLimitLeftAmount.setTextColor(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.limit_reached));
         } else {
-            dailyLimitLeftAmount.setText(String.format("+%.2f", dailyLimitLeft));
+            dailyLimitLeftAmount.setText(String.format("+%.2f", dailyLimit - sumOfDailyExpenses));
             dailyLimitLeftAmount.setTextColor(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.sum_greater_than_zero));
         }
 
-        if (monthlyLimitLeft < 0) {
-            monthlyLimitLeftAmount.setText(String.format("%.2f", monthlyLimitLeft));
+        if (monthlyLimit - sumOfMonthlyExpenses < 0) {
+            monthlyLimitLeftAmount.setText(String.format("%.2f", monthlyLimit - sumOfMonthlyExpenses));
             monthlyLimitLeftAmount.setTextColor(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.limit_reached));
         } else {
-            monthlyLimitLeftAmount.setText(String.format("+%.2f", monthlyLimitLeft));
+            monthlyLimitLeftAmount.setText(String.format("+%.2f", monthlyLimit - sumOfMonthlyExpenses));
             monthlyLimitLeftAmount.setTextColor(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.sum_greater_than_zero));
         }
 
-        drawMonthlyExpensesBarChart();
+        expenseTotalSum.setText(String.format("-%.2f", sumOfMonthlyExpenses));
+        expenseMonthlyAverage.setText(String.format("Average: %.2f / day", sumOfMonthlyExpenses / numberOfDaysInMonth));
+        drawMonthlyExpensesBarChart(monthlyExpenses, numberOfDaysInMonth);
     }
 
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    private void drawMonthlyExpensesBarChart() {
+    private void drawMonthlyExpensesBarChart(List<Transaction> monthlyExpenses, int numberOfDaysInMonth) {
         //configure barChart appearance
         monthlyBarChart.getLegend().setEnabled(false);
         monthlyBarChart.getDescription().setEnabled(false);
@@ -393,5 +416,17 @@ public class LimitsFragment extends Fragment implements View.OnClickListener, Vi
             break;
         }
         return false;
+    }
+
+    public String convertMonthToString(int month, int year) {
+        //months are indexed starting at 0
+        String MM = "" + month;
+        String yyyy = "" + year;
+
+        if (month < 10) {
+            MM = "0" + month;
+        }
+
+        return MM + "/" + yyyy;
     }
 }

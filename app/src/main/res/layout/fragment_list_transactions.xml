@@ -25,7 +25,7 @@
             android:focusable="true" />
 
         <TextView
-            android:id="@+id/actualChosenMonth"
+            android:id="@+id/currentChosenMonthAndYear"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
@@ -37,7 +37,7 @@
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:layout_gravity="center_vertical"
-            android:layout_toEndOf="@id/actualChosenMonth"
+            android:layout_toEndOf="@id/currentChosenMonthAndYear"
             android:background="@android:color/transparent"
             android:clickable="true"
             android:src="@drawable/right_arrow"

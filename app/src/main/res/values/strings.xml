@@ -7,7 +7,7 @@
 
     <string name="set_limits">Limits</string>
     <string name="details">Details</string>
-    <string name="daily_limit">Daily limit:</string>
+    <string name="daily_limit">Daily limit (actual day):</string>
     <string name="daily_limit_set">Limit set:</string>
     <string name="daily_limit_left">Limit left:</string>
     <string name="monthly_limit">Monthly limit:</string>
@@ -27,8 +27,7 @@
     <string name="expense">Expense </string>
     <string name="income">Income </string>
 
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="monthly_expenses">Current month expenses</string>
+    <string name="monthly_expenses">Monthly expenses</string>
     <string-array name="list_of_expenses">
         <item>Food</item>
         <item>Car</item>

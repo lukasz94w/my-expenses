@@ -7,6 +7,9 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.style.ForegroundColorSpan;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -36,10 +39,10 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.ListFragment;
 
-import com.example.myexpenses.model.Header;
-import com.example.myexpenses.model.Item;
 import com.example.myexpenses.R;
 import com.example.myexpenses.customAdapter.ItemAdapter;
+import com.example.myexpenses.model.Header;
+import com.example.myexpenses.model.Item;
 import com.example.myexpenses.model.Transaction;
 import com.example.myexpenses.repository.TransactionRepository;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -64,19 +67,19 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
 
     //onCreate
     private TransactionRepository transactionRepository;
-    private TextView actualChosenMonth;
+    private SharedPreferences sharedPreferences;
+    private TextView currentChosenMonthAndYear;
     private TextView monthlyTransactionSum;
     private ItemAdapter itemAdapter;
     private int actualDay;
     private int actualMonth;
     private int actualYear;
     private Date actualDate;
-    private int currentChosenMonth;
-    private int currentChosenYear;
     private Float dailyLimit;
     private Float monthlyLimit;
-    private double sumOfMonthlyExpenses;
-    private double sumOfDailyExpenses;
+    private int typeOfView;
+    private int currentChosenMonth;
+    private int currentChosenYear;
 
     //popupWindow
     private View popupView;
@@ -112,9 +115,11 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
         actualDate = new Date();
         actualDate.setTime(calendar.getTime().getTime());
 
-        SharedPreferences sharedPreferences = this.getActivity().getSharedPreferences("Limits", MODE_PRIVATE);
+        sharedPreferences = this.getActivity().getSharedPreferences("SharedPreferences", MODE_PRIVATE);
+        //default values if they not have been initialized yet
         dailyLimit = sharedPreferences.getFloat("Daily limit", 1000);
         monthlyLimit = sharedPreferences.getFloat("Monthly limit", 5000);
+        typeOfView = sharedPreferences.getInt("Type of view", 1);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
@@ -126,7 +131,7 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
         ImageView previousMonth = view.findViewById(R.id.previousMonth);
         previousMonth.setOnClickListener(this);
 
-        actualChosenMonth = view.findViewById(R.id.actualChosenMonth);
+        currentChosenMonthAndYear = view.findViewById(R.id.currentChosenMonthAndYear);
 
         ImageView nextMonth = view.findViewById(R.id.nextMonth);
         nextMonth.setOnClickListener(this);
@@ -147,11 +152,60 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.search_menu, menu);
-        MenuItem searchItem = menu.findItem(R.id.action_search);
-        SearchView searchView = (SearchView) searchItem.getActionView();
+        MenuItem menuActionSearch = menu.findItem(R.id.menuActionSearch);
+        SearchView searchView = (SearchView) menuActionSearch.getActionView();
         searchView.setOnQueryTextListener(this);
         searchView.setQueryHint("Search");
+
+        MenuItem menuTypeOfView = menu.findItem(R.id.menuTypeOfView);
+        switch (typeOfView) {
+            case 1:
+                menuTypeOfView.setIcon(R.drawable.menu_show_transactions);
+                break;
+            case 2:
+                menuTypeOfView.setIcon(R.drawable.menu_show_expenses);
+                break;
+            case 3:
+                menuTypeOfView.setIcon(R.drawable.menu_show_incomes);
+                break;
+            default:
+                break;
+        }
         super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menuTypeOfView:
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                typeOfView++;
+                if (typeOfView > 3) {
+                    typeOfView = 1;
+                }
+                editor.putInt("Type of view", typeOfView);
+                editor.apply();
+
+                switch (typeOfView) {
+                    case 1:
+                        item.setIcon(R.drawable.menu_show_transactions);
+                        break;
+                    case 2:
+                        item.setIcon(R.drawable.menu_show_expenses);
+                        break;
+                    case 3:
+                        item.setIcon(R.drawable.menu_show_incomes);
+                        break;
+                    default:
+                        break;
+                }
+
+                updateView();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override
@@ -337,18 +391,15 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
                 int monthOfNewTransaction = calendar.get(Calendar.MONTH);
                 int yearOfNewTransaction = calendar.get(Calendar.YEAR);
 
-                //limit warnings works only in actual month
-                if (currentChosenMonth == actualMonth && currentChosenYear == actualYear) {
+                if (transactionType == 1) {
                     boolean isDailyLimitExceeded = false;
-                    if (transactionDate.equals(actualDate) && transactionType == 1) {
-                        if (sumOfDailyExpenses + Math.abs(transactionAmount) > dailyLimit)
+                    if (transactionDate.equals(actualDate)) {
+                        if (Math.abs(transactionRepository.getSumOfDailyExpenses(actualDay, monthOfNewTransaction, yearOfNewTransaction)) + Math.abs(transactionAmount) > dailyLimit)
                             isDailyLimitExceeded = true;
                     }
                     boolean isMonthlyLimitExceeded = false;
-                    if (monthOfNewTransaction == currentChosenMonth && yearOfNewTransaction == currentChosenYear && transactionType == 1) {
-                        if (sumOfMonthlyExpenses + Math.abs(transactionAmount) > monthlyLimit) {
-                            isMonthlyLimitExceeded = true;
-                        }
+                    if (Math.abs(transactionRepository.getSumOfMonthlyExpenses(monthOfNewTransaction, yearOfNewTransaction)) + Math.abs(transactionAmount) > monthlyLimit) {
+                        isMonthlyLimitExceeded = true;
                     }
 
                     if (isDailyLimitExceeded || isMonthlyLimitExceeded) {
@@ -365,7 +416,7 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
                         builder.setPositiveButton(R.string.limit_yes_button, (dialog, which) -> {
                             transactionRepository.create(transactionToSave);
                             //check if we need to actualise current seen list of transactions and total sum
-                            if ((currentChosenMonth == monthOfNewTransaction) && (currentChosenYear == yearOfNewTransaction)) {
+                            if ((monthOfNewTransaction == currentChosenMonth) && (yearOfNewTransaction == currentChosenYear)) {
                                 updateView();
                             }
                             Snackbar snackbar = Snackbar.make(Objects.requireNonNull(getView()), "Record successfully added", Snackbar.LENGTH_LONG);
@@ -384,7 +435,7 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
 
                 transactionRepository.create(transactionToSave);
                 //check if we need to actualise current seen list of transactions and total sum
-                if ((currentChosenMonth == monthOfNewTransaction) && (currentChosenYear == yearOfNewTransaction)) {
+                if ((monthOfNewTransaction == currentChosenMonth) && (yearOfNewTransaction == currentChosenYear)) {
                     updateView();
                 }
                 Snackbar snackbar = Snackbar.make(Objects.requireNonNull(getView()), "Record successfully added", Snackbar.LENGTH_LONG);
@@ -406,69 +457,61 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
     @SuppressLint("DefaultLocale")
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void updateView() {
-        List<Transaction> monthTransactions = transactionRepository.findTransactionsInMonth(currentChosenMonth, currentChosenYear);
-        double sumOfMonthTransactions = monthTransactions.stream()
+        List<Transaction> chosenMonthOperations = new LinkedList<>();
+        switch (typeOfView) {
+            case 1:
+                chosenMonthOperations = transactionRepository.findTransactionsInMonth(currentChosenMonth, currentChosenYear);
+                break;
+            case 2:
+                chosenMonthOperations = transactionRepository.findExpensesInMonth(currentChosenMonth, currentChosenYear);
+                break;
+            case 3:
+                chosenMonthOperations = transactionRepository.findIncomesInMonth(currentChosenMonth, currentChosenYear);
+            default:
+                break;
+        }
+
+        double sumOfCurrentChosenMonthOperations = chosenMonthOperations.stream()
                 .mapToDouble(Transaction::getAmount)
                 .sum();
-        sumOfMonthlyExpenses = monthTransactions.stream()
-                .filter(o -> o.getType() == 1)
-                .mapToDouble(o -> Math.abs(o.getAmount()))
-                .sum();
-        sumOfDailyExpenses = monthTransactions.stream()
-                .filter(o -> o.getDate().equals(actualDate))
-                .filter(o -> o.getType() == 1)
-                .mapToDouble(o -> Math.abs(o.getAmount()))
-                .sum();
-        List<Item> monthTransactionsListWithAddedHeaders = sortAndAddHeaders(monthTransactions);
 
-        actualChosenMonth.setText(convertMonthToString(currentChosenMonth + 1, currentChosenYear)); //months are indexed starting from zero
+        double sumOfCurrentChosenMonthExpenses = Math.abs(transactionRepository.getSumOfMonthlyExpenses(currentChosenMonth, currentChosenYear));
 
-        //limit warnings work only in actual month
+        double sumOfActualDayExpenses = 0;
         if (currentChosenMonth == actualMonth && currentChosenYear == actualYear) {
-            if (sumOfDailyExpenses > dailyLimit && sumOfMonthlyExpenses > monthlyLimit) {
-                if (sumOfMonthTransactions >= 0) {
-                    monthlyTransactionSum.setText(String.format("+%.2f (D!M!)", sumOfMonthTransactions));
-                } else {
-                    monthlyTransactionSum.setText(String.format("%.2f (D!M!)", sumOfMonthTransactions));
-                }
-                monthlyTransactionSum.setTextColor(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.limit_reached));
-            } else if (sumOfDailyExpenses > dailyLimit) {
-                if (sumOfMonthTransactions >= 0) {
-                    monthlyTransactionSum.setText(String.format("+%.2f (D!)", sumOfMonthTransactions));
-                } else {
-                    monthlyTransactionSum.setText(String.format("%.2f (D!)", sumOfMonthTransactions));
-                }
-                monthlyTransactionSum.setTextColor(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.limit_reached));
-            } else if (sumOfMonthlyExpenses > monthlyLimit) {
-                if (sumOfMonthTransactions >= 0) {
-                    monthlyTransactionSum.setText(String.format("+%.2f (M!)", sumOfMonthTransactions));
-                } else {
-                    monthlyTransactionSum.setText(String.format("%.2f (M!)", sumOfMonthTransactions));
-                }
-                monthlyTransactionSum.setTextColor(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.limit_reached));
-            } else {
-                if (sumOfMonthTransactions >= 0) {
-                    monthlyTransactionSum.setText(String.format("+%.2f", sumOfMonthTransactions));
-                    monthlyTransactionSum.setTextColor(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.sum_greater_than_zero));
-                } else {
-                    monthlyTransactionSum.setText(String.format("%.2f", sumOfMonthTransactions));
-                    monthlyTransactionSum.setTextColor(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.sum_lesser_than_zero));
-                }
-            }
-        } else {
-            if (sumOfMonthTransactions >= 0) {
-                monthlyTransactionSum.setText(String.format("+%.2f", sumOfMonthTransactions));
-                monthlyTransactionSum.setTextColor(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.sum_greater_than_zero));
-            } else {
-                monthlyTransactionSum.setText(String.format("%.2f", sumOfMonthTransactions));
-                monthlyTransactionSum.setTextColor(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.sum_lesser_than_zero));
-            }
+            sumOfActualDayExpenses = Math.abs(transactionRepository.getSumOfDailyExpenses(actualDay, actualMonth, actualYear));
         }
+
+        Spannable sumOfMonthlyTransactions;
+        if (sumOfCurrentChosenMonthOperations >= 0) {
+            sumOfMonthlyTransactions = new SpannableString(String.format("+%.2f", sumOfCurrentChosenMonthOperations));
+            sumOfMonthlyTransactions.setSpan(new ForegroundColorSpan(ContextCompat.getColor(getContext(), R.color.sum_greater_than_zero)), 0, sumOfMonthlyTransactions.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        } else {
+            sumOfMonthlyTransactions = new SpannableString(String.format("%.2f", sumOfCurrentChosenMonthOperations));
+            sumOfMonthlyTransactions.setSpan(new ForegroundColorSpan(ContextCompat.getColor(getContext(), R.color.sum_lesser_than_zero)), 0, sumOfMonthlyTransactions.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        monthlyTransactionSum.setText(sumOfMonthlyTransactions);
+
+        if ((currentChosenMonth == actualMonth && currentChosenYear == actualYear) && sumOfActualDayExpenses > dailyLimit && sumOfCurrentChosenMonthExpenses > monthlyLimit) {
+            Spannable limitExceeded = new SpannableString(" (D!M!)");
+            limitExceeded.setSpan(new ForegroundColorSpan(ContextCompat.getColor(getContext(), R.color.limit_reached)), 0, limitExceeded.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            monthlyTransactionSum.append(limitExceeded);
+        } else if ((currentChosenMonth == actualMonth && currentChosenYear == actualYear) && sumOfActualDayExpenses > dailyLimit) {
+            Spannable limitExceeded = new SpannableString(" (D!)");
+            limitExceeded.setSpan(new ForegroundColorSpan(ContextCompat.getColor(getContext(), R.color.limit_reached)), 0, limitExceeded.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            monthlyTransactionSum.append(limitExceeded);
+        } else if (sumOfCurrentChosenMonthExpenses > monthlyLimit) {
+            Spannable limitExceeded = new SpannableString(" (M!)");
+            limitExceeded.setSpan(new ForegroundColorSpan(ContextCompat.getColor(getContext(), R.color.limit_reached)), 0, limitExceeded.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            monthlyTransactionSum.append(limitExceeded);
+        }
+
+        List<Item> monthTransactionsListWithAddedHeaders = sortAndAddHeaders(chosenMonthOperations);
+        currentChosenMonthAndYear.setText(convertMonthToString(currentChosenMonth + 1, currentChosenYear)); //months are indexed starting from zero
 
         itemAdapter.clear();
         itemAdapter.addAll(monthTransactionsListWithAddedHeaders);
         itemAdapter.notifyDataSetChanged();
-
     }
 
     @SuppressLint("DefaultLocale")
@@ -504,7 +547,6 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
 
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
-
     }
 
     @SuppressLint({"ClickableViewAccessibility", "DefaultLocale"})
@@ -630,22 +672,19 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
             transactionToSave.setCategory(transactionCategory);
             transactionToSave.setDate(transactionDate);
 
-            //limits warning works only in actual month
-            if (currentChosenMonth == actualMonth && currentChosenYear == actualYear) {
+            calendar.setTime(transactionDate);
+            int monthOfUpdatedTransaction = calendar.get(Calendar.MONTH);
+            int yearOfUpdatedTransaction = calendar.get(Calendar.YEAR);
+
+            if (transactionType == 1) {
                 boolean isDailyLimitExceeded = false;
-                if (transactionDate.equals(actualDate) && transactionType == 1) {
-                    if (sumOfDailyExpenses - Math.abs(primaryValueOfUpdatedTransaction) + Math.abs(transactionAmount) > dailyLimit)
+                if (transactionDate.equals(actualDate)) {
+                    if (Math.abs(transactionRepository.getSumOfDailyExpenses(actualDay, monthOfUpdatedTransaction, yearOfUpdatedTransaction)) - Math.abs(primaryValueOfUpdatedTransaction) + Math.abs(transactionAmount) > dailyLimit)
                         isDailyLimitExceeded = true;
                 }
-
                 boolean isMonthlyLimitExceeded = false;
-                calendar.setTime(transactionDate);
-                int monthOfNewTransaction = calendar.get(Calendar.MONTH);
-                int yearOfNewTransaction = calendar.get(Calendar.YEAR); //in month march for example!
-                if (monthOfNewTransaction == currentChosenMonth && yearOfNewTransaction == currentChosenYear && transactionType == 1) {
-                    if (sumOfMonthlyExpenses - Math.abs(primaryValueOfUpdatedTransaction) + Math.abs(transactionAmount) > monthlyLimit) {
-                        isMonthlyLimitExceeded = true;
-                    }
+                if (Math.abs(transactionRepository.getSumOfMonthlyExpenses(monthOfUpdatedTransaction, yearOfUpdatedTransaction)) - Math.abs(primaryValueOfUpdatedTransaction) + Math.abs(transactionAmount) > monthlyLimit) {
+                    isMonthlyLimitExceeded = true;
                 }
 
                 if (isDailyLimitExceeded || isMonthlyLimitExceeded) {
@@ -825,7 +864,7 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
     //TEST METHODS
     public void createTestRecords() {
 
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 15; i++) {
             //INCOMES
             transactionRepository.create(new Transaction(0, "Wypłata za październik", new Random().nextInt(5000), "Payment", returnDate(new Random().nextInt(28) + 1 + ".10.2020")));
             transactionRepository.create(new Transaction(0, "Wypłata za listopad", new Random().nextInt(5000), "Payment", returnDate(new Random().nextInt(28) + 1 + ".11.2020")));
@@ -863,7 +902,7 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
             transactionRepository.create(new Transaction(1, "Tankowanie", new Random().nextInt(250) - 250, "Car", returnDate(new Random().nextInt(28) + 1 + ".01.2021")));
 
             //FEBRUARY
-            transactionRepository.create(new Transaction(1, "Spodnie do biegania",new Random().nextInt(250) - 250, "Sport", returnDate(new Random().nextInt(28) + 1 + ".02.2021")));
+            transactionRepository.create(new Transaction(1, "Spodnie do biegania", new Random().nextInt(250) - 250, "Sport", returnDate(new Random().nextInt(28) + 1 + ".02.2021")));
             transactionRepository.create(new Transaction(1, "Koszula galowa", new Random().nextInt(250) - 250, "Other", returnDate(new Random().nextInt(28) + 1 + ".02.2021")));
             transactionRepository.create(new Transaction(1, "Pizza", new Random().nextInt(250) - 250, "Food", returnDate(new Random().nextInt(28) + 1 + ".02.2021")));
             transactionRepository.create(new Transaction(1, "Tankowanie", new Random().nextInt(250) - 250, "Car", returnDate(new Random().nextInt(28) + 1 + ".02.2021")));

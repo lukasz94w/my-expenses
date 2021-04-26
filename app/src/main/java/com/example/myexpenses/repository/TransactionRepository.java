@@ -135,6 +135,65 @@ public class TransactionRepository extends SQLiteOpenHelper {
         return expensesList;
     }
 
+    public List<Transaction> findIncomesInMonth(int month, int year) {
+        List<Long> monthBoundaries = getMonthBoundaries(month, year);
+        Long dateFrom = monthBoundaries.get(0);
+        Long dateTo = monthBoundaries.get(1);
+        List<Transaction> expensesList = new LinkedList<>();
+
+        String selectQuery = "SELECT * FROM " + TABLE_TRANSACTION + " WHERE " + TRANSACTION_DATE + " >= " + dateFrom + " AND " + TRANSACTION_DATE + " <= " + dateTo + " AND type = 0";
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                Transaction transaction = new Transaction();
+                transaction.setId(cursor.getInt(0));
+                transaction.setType(cursor.getInt(1));
+                transaction.setName(cursor.getString(2));
+                transaction.setAmount(Float.parseFloat(cursor.getString(3)));
+                transaction.setCategory(cursor.getString(4));
+                transaction.setDate(new Date(cursor.getLong(5)));
+
+                expensesList.add(transaction);
+            } while (cursor.moveToNext());
+        }
+        return expensesList;
+    }
+
+    public Integer getSumOfMonthlyExpenses(int month, int year) {
+        List<Long> monthBoundaries = getMonthBoundaries(month, year);
+        Long dateFrom = monthBoundaries.get(0);
+        Long dateTo = monthBoundaries.get(1);
+        Integer sumOfTransactions = 0;
+
+        String selectQuery = "SELECT SUM(" + TRANSACTION_AMOUNT + ") " + " FROM " + TABLE_TRANSACTION + " WHERE " + TRANSACTION_DATE + " >= " + dateFrom + " AND " + TRANSACTION_DATE + " <= " + dateTo + " AND type = 1";
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        if (cursor.moveToFirst()) {
+            sumOfTransactions = cursor.getInt(0);
+        }
+        return sumOfTransactions;
+    }
+
+    public Integer getSumOfDailyExpenses(int day, int month, int year) {
+        Long dayAsUnix = getDay(day, month, year);
+        Integer sumOfTransactions = 0;
+
+        String selectQuery = "SELECT SUM(" + TRANSACTION_AMOUNT + ") " + " FROM " + TABLE_TRANSACTION + " WHERE " + TRANSACTION_DATE + " == " + dayAsUnix + " AND type = 1";
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        if (cursor.moveToFirst()) {
+            sumOfTransactions = cursor.getInt(0);
+        }
+        return sumOfTransactions;
+    }
+
     public List<Transaction> search(String keyword, int month, int year) {
         List<Long> monthBoundaries = getMonthBoundaries(month, year);
         Long dateFrom = monthBoundaries.get(0);
@@ -212,5 +271,21 @@ public class TransactionRepository extends SQLiteOpenHelper {
             monthBoundaries.add(endOfMonthUnix);
         }
         return monthBoundaries;
+    }
+
+    private Long getDay(int day, int month, int year) {
+        Long dayAsUnix;
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.MONTH, month);
+        calendar.set(Calendar.YEAR, year);
+        calendar.set(Calendar.DAY_OF_MONTH, day);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        dayAsUnix = calendar.getTime().getTime();
+
+        return dayAsUnix;
     }
 }
