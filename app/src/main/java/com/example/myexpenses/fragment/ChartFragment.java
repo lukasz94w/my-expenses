@@ -161,7 +161,7 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
             monthlyTransactionSum.setTextColor(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.ColorPrimary));
         } else {
             monthlyTransactionSum.setText(String.format("%.2f", totalSum));
-            monthlyTransactionSum.setTextColor(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.bacgroundColorPopup));
+            monthlyTransactionSum.setTextColor(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.backgroundColorPopup));
         }
 
         chartContainer.removeAllViews();

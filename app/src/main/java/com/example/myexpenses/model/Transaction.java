@@ -5,26 +5,37 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import com.example.myexpenses.R;
 import com.example.myexpenses.customAdapter.ItemAdapter;
 
 import java.util.Date;
+import java.util.Objects;
 
 public class Transaction implements Comparable<Transaction>, Item {
 
     private int id;
     private int type;
     private String name;
-    private double amount;
+    private Float amount;
     private String category;
     private Date date;
 
     public Transaction() {
     }
 
-    public Transaction(int type, String name, float amount, String category, Date date) {
+    public Transaction(int type, String name, Float amount, String category, Date date) {
+        this.type = type;
+        this.name = name;
+        this.amount = amount;
+        this.category = category;
+        this.date = date;
+    }
+
+    public Transaction(int id, int type, String name, Float amount, String category, Date date) {
+        this.id = id;
         this.type = type;
         this.name = name;
         this.amount = amount;
@@ -56,11 +67,11 @@ public class Transaction implements Comparable<Transaction>, Item {
         this.name = name;
     }
 
-    public double getAmount() {
+    public Float getAmount() {
         return amount;
     }
 
-    public void setAmount(double amount) {
+    public void setAmount(Float amount) {
         this.amount = amount;
     }
 
@@ -78,6 +89,28 @@ public class Transaction implements Comparable<Transaction>, Item {
 
     public void setDate(Date date) {
         this.date = date;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (obj instanceof Transaction) {
+            Transaction otherTransaction = (Transaction) obj;
+            return id == otherTransaction.id &&
+                    type == otherTransaction.type &&
+                    name.equals(otherTransaction.name) &&
+                    amount.equals(otherTransaction.amount) &&
+                    category.equals(otherTransaction.category) &&
+                    date.equals(otherTransaction.date);
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, type, name, amount, category, date);
     }
 
     @Override

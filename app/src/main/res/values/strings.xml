@@ -18,9 +18,14 @@
     <string name="limit_title">Limit exceeded!</string>
     <string name="limit_yes_button">YES</string>
     <string name="limit_no_button">NO</string>
-    <string name="limit_warning_daily_and_monthly">After this transaction the <b>daily</b> and <b>monthly</b> limits will be exceeded</string>
-    <string name="limit_warning_daily">After this transaction the <b>daily</b> limit will be exceeded</string>
-    <string name="limit_warning_monthly">After this transaction the <b>monthly</b> limit will be exceeded</string>
+    <string name="limit_warning_daily_and_monthly_message">After this transaction the <b>daily</b> and <b>monthly</b> limits will be exceeded</string>
+    <string name="limit_warning_daily_message">After this transaction the <b>daily</b> limit will be exceeded</string>
+    <string name="limit_warning_monthly_message">After this transaction the <b>monthly</b> limit will be exceeded</string>
+
+    <string name="unsaved_date_title">Unsaved data</string>
+    <string name="unsaved_data_yes_button">YES</string>
+    <string name="unsaved_data_no_button">NO</string>
+    <string name="unsaved_data_message">Unsaved data will be lost. \nProceed?</string>
 
     <string name="today">Today </string>
     <string name="yesterday">Yesterday </string>

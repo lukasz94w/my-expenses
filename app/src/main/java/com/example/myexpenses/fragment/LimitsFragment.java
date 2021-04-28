@@ -1,6 +1,8 @@
 package com.example.myexpenses.fragment;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
@@ -10,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -181,8 +184,26 @@ public class LimitsFragment extends Fragment implements View.OnClickListener, Vi
                 //popupWindow
                 View popupView = inflater.inflate(R.layout.popup_change_limits, null);
 
-                popupWindow = new PopupWindow(popupView, 565, 548, true);
+                int popupWidth = 565;
+                int popupHeight = 548;
+                popupWindow = new PopupWindow(popupView, popupWidth, popupHeight, true);
                 popupWindow.showAtLocation(popupView, Gravity.CENTER, 0, -125);
+
+                //if the touch is outside the bounds the touch is consumed and not passed to the popupWindow so it is not dismissed
+                popupWindow.setTouchInterceptor((v12, event) -> {
+                    if (event.getX() < 0 || event.getX() > popupWidth) return true;
+                    if (event.getY() < 0 || event.getY() > popupHeight) return true;
+
+                    return false;
+                });
+
+                //dim background when popup shows
+                View container = (View) popupWindow.getContentView().getParent();
+                WindowManager windowManager = (WindowManager) getContext().getSystemService(Context.WINDOW_SERVICE);
+                WindowManager.LayoutParams layoutParams = (WindowManager.LayoutParams) container.getLayoutParams();
+                layoutParams.flags = WindowManager.LayoutParams.FLAG_DIM_BEHIND;
+                layoutParams.dimAmount = 0.6f;
+                windowManager.updateViewLayout(container, layoutParams);
 
                 Toolbar toolbar = popupView.findViewById(R.id.tool_bar);
                 ImageButton toolbarClose = popupView.findViewById(R.id.toolbarClose);
@@ -237,7 +258,32 @@ public class LimitsFragment extends Fragment implements View.OnClickListener, Vi
             }
 
             case R.id.toolbarClose: {
-                popupWindow.dismiss();
+                Float valueOfSetDailyLimit;
+                try {
+                    valueOfSetDailyLimit = Float.valueOf(setDailyLimit.getText().toString());
+                } catch (NumberFormatException e) {
+                    valueOfSetDailyLimit = 0f;
+                }
+
+                Float valueOfSetMonthlyLimit;
+                try {
+                    valueOfSetMonthlyLimit = Float.valueOf(setMonthlyLimit.getText().toString());
+                } catch (NumberFormatException e) {
+                    valueOfSetMonthlyLimit = 0f;
+                }
+
+                if (!valueOfSetDailyLimit.equals(dailyLimit) || !valueOfSetMonthlyLimit.equals(monthlyLimit)) {
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                    builder.setCancelable(false);
+                    builder.setMessage(R.string.unsaved_data_message);
+                    builder.setPositiveButton(R.string.limit_yes_button, (dialog, which) -> popupWindow.dismiss());
+                    builder.setNegativeButton(R.string.limit_no_button, (dialog, which) -> {
+                    });
+                    AlertDialog alertDialog = builder.create();
+                    alertDialog.show();
+                } else {
+                    popupWindow.dismiss();
+                }
                 break;
             }
 
@@ -285,7 +331,6 @@ public class LimitsFragment extends Fragment implements View.OnClickListener, Vi
         expenseMonthlyAverage.setText(String.format("Average: %.2f / day", sumOfMonthlyExpenses / numberOfDaysInMonth));
         drawMonthlyExpensesBarChart(monthlyExpenses, numberOfDaysInMonth);
     }
-
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void drawMonthlyExpensesBarChart(List<Transaction> monthlyExpenses, int numberOfDaysInMonth) {
@@ -343,7 +388,7 @@ public class LimitsFragment extends Fragment implements View.OnClickListener, Vi
             }
 
             numberOfDayInMonth = dayOfTransaction;
-            float valueOfExpense = (float) Math.abs(monthlyExpenses.get(i).getAmount()); //abs because expense numbers are stored with '-' sign
+            float valueOfExpense = Math.abs(monthlyExpenses.get(i).getAmount()); //abs because expense numbers are stored with '-' sign
             sumOfExpensesInMonth = sumOfExpensesInMonth + valueOfExpense;
 
             //checking if there is already a transaction with the same date, if so, actualize total sum

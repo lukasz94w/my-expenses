@@ -2,7 +2,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/bacgroundColorPopup">
+    android:background="@color/backgroundColorPopup">
 
     <include
         android:id="@+id/tool_bar"
@@ -175,7 +175,7 @@
 
     <Spinner
         android:id="@+id/chooseTransactionCategory"
-        android:popupBackground="@color/bacgroundColorPopup"
+        android:popupBackground="@color/backgroundColorPopup"
         android:layout_margin="6dp"
         android:layout_width="wrap_content"
         android:layout_height="50dp"
