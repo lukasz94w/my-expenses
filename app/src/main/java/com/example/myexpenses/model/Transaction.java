@@ -5,6 +5,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
@@ -111,6 +112,12 @@ public class Transaction implements Comparable<Transaction>, Item {
     @Override
     public int hashCode() {
         return Objects.hash(id, type, name, amount, category, date);
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "Id = " + id + ", Type = " + type + ", Name = " + name + ", Amount = " + amount + ", Category = " + category + ", Date = " + date;
     }
 
     @Override

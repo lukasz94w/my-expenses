@@ -27,6 +27,11 @@
     <string name="unsaved_data_no_button">NO</string>
     <string name="unsaved_data_message">Unsaved data will be lost. \nProceed?</string>
 
+    <string name="delete_transaction_message">Transaction will be deleted. \nProceed?</string>
+    <string name="delete_transactions_message">Transactions will be deleted. \nProceed?</string>
+    <string name="delete_transaction_yes_button">YES</string>
+    <string name="delete_transaction_no_button">NO</string>
+
     <string name="today">Today </string>
     <string name="yesterday">Yesterday </string>
     <string name="expense">Expense </string>

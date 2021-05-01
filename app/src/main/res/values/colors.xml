@@ -19,6 +19,11 @@
 
     <color name="barChartLimits">#94E1E1</color>
 
+    //select listview colors
+    <color name="unselected">#FFFFFF</color>
+    <color name="pressed">#E3E3E3</color>
+    <color name="selected">#CFCFCF</color>
+
     //sum colors
     <color name="sum_greater_than_zero">#4BA70A</color>
     <color name="sum_lesser_than_zero">#808080</color>
@@ -48,5 +53,4 @@
     <color name="below_limit">#43D500</color>
     <color name="over_limit">#D50700</color>
     <!--    <color name="grid_color">#FFFFFF</color>-->
-
 </resources>

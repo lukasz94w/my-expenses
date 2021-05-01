@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.text.TextUtils;
 
 import com.example.myexpenses.model.Transaction;
 
@@ -219,7 +220,7 @@ public class TransactionRepository extends SQLiteOpenHelper {
         return transactionList;
     }
 
-    public void update(Transaction updatedTransaction) {
+    public void updateTransaction(Transaction updatedTransaction) {
         SQLiteDatabase db = this.getWritableDatabase();
 
         ContentValues values = new ContentValues();
@@ -232,14 +233,19 @@ public class TransactionRepository extends SQLiteOpenHelper {
         db.update(TABLE_TRANSACTION, values, TRANSACTION_ID + "=" + updatedTransaction.getId(), null);
     }
 
-    public void delete(int id) {
+    public void deleteTransaction(int id) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.execSQL("DELETE FROM " + TABLE_TRANSACTION + " WHERE " + TRANSACTION_ID + " = " + id);
+        db.delete(TABLE_TRANSACTION, TRANSACTION_ID + " = " + id, null);
     }
 
-    public void deleteAllRecords() {
+    public void deleteTransactions(String[] ids) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.execSQL("DELETE FROM " + TABLE_TRANSACTION);
+        db.delete(TABLE_TRANSACTION, "CAST(" + TRANSACTION_ID + " AS TEXT) IN (" + new String(new char[ids.length - 1]).replace("\0", "?,") + "?)", ids);
+    }
+
+    public void deleteAllTransactions() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_TRANSACTION, null, null);
     }
 
     private List<Long> getMonthBoundaries(int month, int year) {

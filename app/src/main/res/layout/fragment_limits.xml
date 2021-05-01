@@ -7,7 +7,7 @@
     tools:context=".fragment.LimitsFragment">
 
     <RelativeLayout
-        android:id="@+id/navigation_bar"
+        android:id="@+id/navigationBar"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:clickable="false"
@@ -66,7 +66,7 @@
         android:layout_marginStart="14dp"
         android:layout_marginTop="5dp"
         android:text="@string/daily_limit"
-        android:layout_below="@id/navigation_bar"
+        android:layout_below="@id/navigationBar"
         android:textColor="@color/black"
         android:textSize="21sp" />
 
