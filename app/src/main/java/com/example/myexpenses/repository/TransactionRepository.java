@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.example.myexpenses.model.Transaction;
 
@@ -92,6 +93,91 @@ public class TransactionRepository extends SQLiteOpenHelper {
 
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                Transaction transaction = new Transaction();
+                transaction.setId(cursor.getInt(0));
+                transaction.setType(cursor.getInt(1));
+                transaction.setName(cursor.getString(2));
+                transaction.setAmount(Float.parseFloat(cursor.getString(3)));
+                transaction.setCategory(cursor.getString(4));
+                transaction.setDate(new Date(cursor.getLong(5)));
+
+                transactionList.add(transaction);
+            } while (cursor.moveToNext());
+        }
+        return transactionList;
+    }
+
+    public List<Transaction> findTransactionsInMonthByFilter(String[] values) {
+        List<Transaction> transactionList = new LinkedList<>();
+        String chosenMonth = values[0];
+        String chosenYear = values[1];
+        String chosenType = values[2];
+        String chosenName = values[3];
+        String chosenCategory = values[4];
+        String chosenOrder = values[5];
+
+        List<String> queryValues = new ArrayList<>();
+        String queryParams = "";
+        String sortOrder;
+
+        //transactions date
+        List<Long> monthBoundaries = getMonthBoundaries(Integer.parseInt(chosenMonth), Integer.parseInt(chosenYear));
+        Long dateFrom = monthBoundaries.get(0);
+        Long dateTo = monthBoundaries.get(1);
+        queryParams = queryParams + TRANSACTION_DATE + " >=? AND " + TRANSACTION_DATE + " <? ";
+        queryValues.add(String.valueOf(dateFrom));
+        queryValues.add(String.valueOf(dateTo));
+
+        //transactions type, check if incomes (0) or expenses (1) were chosen
+        if (!chosenType.equals("2")) {
+            queryParams = queryParams + "AND " + TRANSACTION_TYPE + " =? ";
+            queryValues.add(chosenType);
+        }
+
+        //transactions name
+        if (!chosenName.equals("")) {
+            queryParams = queryParams + "AND " + TRANSACTION_NAME + " LIKE? ";
+            queryValues.add("%" + chosenName + "%");
+        }
+
+        //transactions category
+        if (chosenCategory != null) {
+            if (!chosenCategory.equals("All categories")) {
+                queryParams = queryParams + "AND " + TRANSACTION_CATEGORY + " =? ";
+                queryValues.add(chosenCategory);
+            }
+        }
+
+        //transactions order
+        switch (chosenOrder) {
+            case "By date (ascending)":
+                sortOrder = TRANSACTION_DATE + " ASC";
+                break;
+            case "By value (descending)":
+                sortOrder = TRANSACTION_AMOUNT + " DESC";
+                break;
+            case "By value (ascending)":
+                sortOrder = TRANSACTION_AMOUNT + " ASC";
+                break;
+            case "By category (descending)":
+                sortOrder = TRANSACTION_CATEGORY + " DESC";
+                break;
+            case "By category (ascending)":
+                sortOrder = TRANSACTION_CATEGORY + " ASC";
+                break;
+            default:
+                sortOrder = TRANSACTION_DATE + " DESC";
+                break;
+        }
+
+        String[] finalValues = new String[queryValues.size()];
+        queryValues.toArray(finalValues);
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.query(TABLE_TRANSACTION, null, queryParams, finalValues, null, null, sortOrder, null);
 
         if (cursor.moveToFirst()) {
             do {

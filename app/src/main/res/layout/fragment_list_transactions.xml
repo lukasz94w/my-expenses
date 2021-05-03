@@ -11,7 +11,8 @@
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:clickable="false"
-        android:background="@color/ColorPrimaryBright">
+        android:background="@color/ColorPrimaryBright"
+        android:layout_below="@id/filterBar">
 
         <ImageButton
             android:id="@+id/previousMonth"
@@ -61,6 +62,37 @@
             android:gravity="center_vertical"
             android:textSize="22sp"
             android:textStyle="bold" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/filterBar"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:clickable="false"
+        android:background="@color/ColorPrimary">
+
+        <Spinner
+            android:id="@+id/filterTransactionCategory"
+            android:popupBackground="@color/ColorPrimary"
+            android:layout_margin="6dp"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_alignParentStart="true"
+            android:backgroundTint="@color/white"
+            android:textAlignment="textEnd" />
+
+        <ImageView
+            android:id="@+id/sortTransactions"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerInParent="true"
+            android:layout_gravity="center"
+            android:layout_marginEnd="10dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:src="@drawable/menu_sort" />
 
     </RelativeLayout>
 

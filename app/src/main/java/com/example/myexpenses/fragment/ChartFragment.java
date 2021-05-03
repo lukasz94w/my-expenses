@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -95,12 +96,12 @@ public class ChartFragment extends Fragment implements View.OnClickListener {
         //onCreateView
         View view = inflater.inflate(R.layout.fragment_chart, container, false);
 
-        ImageView previousMonth = view.findViewById(R.id.previousMonth);
+        ImageButton previousMonth = view.findViewById(R.id.previousMonth);
         previousMonth.setOnClickListener(this);
 
         actualChosenMonth = view.findViewById(R.id.currentChosenMonthAndYear);
 
-        ImageView nextMonth = view.findViewById(R.id.nextMonth);
+        ImageButton nextMonth = view.findViewById(R.id.nextMonth);
         nextMonth.setOnClickListener(this);
 
         monthlyTransactionSum = view.findViewById(R.id.monthlyTransactionSum);

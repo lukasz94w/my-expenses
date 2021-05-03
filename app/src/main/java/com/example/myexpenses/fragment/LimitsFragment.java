@@ -130,10 +130,10 @@ public class LimitsFragment extends Fragment implements View.OnClickListener, Vi
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_limits, container, false);
-        ImageView previousMonth = view.findViewById(R.id.previousMonth);
+        ImageButton previousMonth = view.findViewById(R.id.previousMonth);
         previousMonth.setOnClickListener(this);
         currentChosenMonthAndYear = view.findViewById(R.id.currentChosenMonthAndYear);
-        ImageView nextMonth = view.findViewById(R.id.nextMonth);
+        ImageButton nextMonth = view.findViewById(R.id.nextMonth);
         nextMonth.setOnClickListener(this);
 
         dailyLimitSetAmount = view.findViewById(R.id.dailyLimitSetAmount);

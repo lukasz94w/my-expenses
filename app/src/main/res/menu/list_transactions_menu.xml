@@ -3,6 +3,12 @@
     xmlns:myapp="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/menuFilter"
+        android:title="menuFilter"
+        android:checkable="true"
+        myapp:showAsAction="always" />
+
+    <item
         android:id="@+id/menuTypeOfView"
         android:title="menuChooseTransactionView"
         myapp:showAsAction="ifRoom" />

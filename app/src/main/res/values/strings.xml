@@ -37,6 +37,14 @@
     <string name="expense">Expense </string>
     <string name="income">Income </string>
 
+    //list of possible combinations of sorting
+    <string name="order_by_date_desc">By date (descending)</string>
+    <string name="order_by_date_asc">By date (ascending)</string>
+    <string name="order_by_value_desc">By value (descending)</string>
+    <string name="order_by_value_asc">By value (ascending)</string>
+    <string name="order_by_category_desc">By category (descending)</string>
+    <string name="order_by_category_asc">By category (ascending)</string>
+
     <string name="monthly_expenses">Monthly expenses</string>
     <string-array name="list_of_expenses">
         <item>Food</item>
@@ -48,6 +56,36 @@
         <item>Other</item>
     </string-array>
     <string-array name="list_of_incomes">
+        <item>Payment</item>
+        <item>Gift</item>
+        <item>Other</item>
+    </string-array>
+
+    <string-array name="filter_list_of_transactions">
+        <item>All categories</item>
+        <item>Food</item>
+        <item>Car</item>
+        <item>Game</item>
+        <item>Sport</item>
+        <item>Health</item>
+        <item>Hobby</item>
+        <item>Other</item>
+        <item>Payment</item>
+        <item>Gift</item>
+        <item>Other</item>
+    </string-array>
+    <string-array name="filter_list_of_expenses">
+        <item>All categories</item>
+        <item>Food</item>
+        <item>Car</item>
+        <item>Game</item>
+        <item>Sport</item>
+        <item>Health</item>
+        <item>Hobby</item>
+        <item>Other</item>
+    </string-array>
+    <string-array name="filter_list_of_incomes">
+        <item>All categories</item>
         <item>Payment</item>
         <item>Gift</item>
         <item>Other</item>

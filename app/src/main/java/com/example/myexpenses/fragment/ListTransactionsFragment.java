@@ -30,6 +30,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.PopupMenu;
 import android.widget.PopupWindow;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -60,7 +61,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -75,6 +75,8 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
     //onCreate
     private TransactionRepository transactionRepository;
     private SharedPreferences sharedPreferences;
+    private RelativeLayout filterBar;
+    private ImageView sortTransactions;
     private RelativeLayout navigationBar;
     private TextView currentChosenMonthAndYear;
     private TextView monthlyTransactionSum;
@@ -85,9 +87,14 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
     private Date actualDate;
     private Float dailyLimit;
     private Float monthlyLimit;
-    private int typeOfView;
-    private int currentChosenMonth;
-    private int currentChosenYear;
+
+    //search criteria
+    private Integer currentChosenMonth;
+    private Integer currentChosenYear;
+    private int transactionsType;
+    private String transactionsName;
+    private Spinner transactionsCategory;
+    private String transactionsOrder;
 
     //popupWindow
     private View popupView;
@@ -120,11 +127,14 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
         actualDate = new Date();
         actualDate.setTime(calendar.getTime().getTime());
 
+        transactionsName = "";
+        transactionsOrder = "";
+
         sharedPreferences = this.getActivity().getSharedPreferences("SharedPreferences", MODE_PRIVATE);
         //default values if they not have been initialized yet
         dailyLimit = sharedPreferences.getFloat("Daily limit", 1000);
         monthlyLimit = sharedPreferences.getFloat("Monthly limit", 5000);
-        typeOfView = sharedPreferences.getInt("Type of view", 1);
+        transactionsType = sharedPreferences.getInt("Type of view", 2);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
@@ -135,15 +145,24 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
 
         navigationBar = view.findViewById(R.id.navigationBar);
 
-        ImageView previousMonth = view.findViewById(R.id.previousMonth);
+        ImageButton previousMonth = view.findViewById(R.id.previousMonth);
         previousMonth.setOnClickListener(this);
 
         currentChosenMonthAndYear = view.findViewById(R.id.currentChosenMonthAndYear);
 
-        ImageView nextMonth = view.findViewById(R.id.nextMonth);
+        ImageButton nextMonth = view.findViewById(R.id.nextMonth);
         nextMonth.setOnClickListener(this);
 
         monthlyTransactionSum = view.findViewById(R.id.monthlyTransactionSum);
+
+        filterBar = view.findViewById(R.id.filterBar);
+        filterBar.setVisibility(View.GONE);
+
+        transactionsCategory = view.findViewById(R.id.filterTransactionCategory);
+        transactionsCategory.setOnItemSelectedListener(this);
+
+        sortTransactions = view.findViewById(R.id.sortTransactions);
+        sortTransactions.setOnClickListener(this);
 
         itemAdapter = new ItemAdapter(getActivity(), new ArrayList());
         setListAdapter(itemAdapter);
@@ -158,26 +177,37 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.search_menu, menu);
+        inflater.inflate(R.menu.list_transactions_menu, menu);
         MenuItem menuActionSearch = menu.findItem(R.id.menuActionSearch);
         SearchView searchView = (SearchView) menuActionSearch.getActionView();
         searchView.setOnQueryTextListener(this);
         searchView.setQueryHint("Search");
 
         MenuItem menuTypeOfView = menu.findItem(R.id.menuTypeOfView);
-        switch (typeOfView) {
+        ArrayAdapter<String> filterCategoryAdapter;
+        switch (transactionsType) {
+            case 0:
+                menuTypeOfView.setIcon(R.drawable.menu_show_incomes);
+                filterCategoryAdapter = new ArrayAdapter<>(this.getActivity(), R.layout.spinner_filter_categories, getResources().getStringArray(R.array.filter_list_of_incomes));
+                transactionsCategory.setAdapter(filterCategoryAdapter);
+                break;
             case 1:
-                menuTypeOfView.setIcon(R.drawable.menu_show_transactions);
+                menuTypeOfView.setIcon(R.drawable.menu_show_expenses);
+                filterCategoryAdapter = new ArrayAdapter<>(this.getActivity(), R.layout.spinner_filter_categories, getResources().getStringArray(R.array.filter_list_of_expenses));
+                transactionsCategory.setAdapter(filterCategoryAdapter);
                 break;
             case 2:
-                menuTypeOfView.setIcon(R.drawable.menu_show_expenses);
-                break;
-            case 3:
-                menuTypeOfView.setIcon(R.drawable.menu_show_incomes);
+                menuTypeOfView.setIcon(R.drawable.menu_show_transactions);
+                filterCategoryAdapter = new ArrayAdapter<>(this.getActivity(), R.layout.spinner_filter_categories, getResources().getStringArray(R.array.filter_list_of_transactions));
+                transactionsCategory.setAdapter(filterCategoryAdapter);
                 break;
             default:
                 break;
         }
+
+        MenuItem menuFilter = menu.findItem(R.id.menuFilter);
+        menuFilter.setIcon(R.drawable.menu_show_filter);
+
         super.onCreateOptionsMenu(menu, inflater);
     }
 
@@ -185,31 +215,53 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.menuTypeOfView:
+            case R.id.menuTypeOfView: {
                 SharedPreferences.Editor editor = sharedPreferences.edit();
-                typeOfView++;
-                if (typeOfView > 3) {
-                    typeOfView = 1;
+                ArrayAdapter<String> filterCategoryAdapter;
+                transactionsType++;
+                if (transactionsType > 2) {
+                    transactionsType = 0;
                 }
-                editor.putInt("Type of view", typeOfView);
+                editor.putInt("Type of view", transactionsType);
                 editor.apply();
 
-                switch (typeOfView) {
+                switch (transactionsType) {
+                    case 0:
+                        item.setIcon(R.drawable.menu_show_incomes);
+                        filterCategoryAdapter = new ArrayAdapter<>(this.getActivity(), R.layout.spinner_filter_categories, getResources().getStringArray(R.array.filter_list_of_incomes));
+                        transactionsCategory.setAdapter(filterCategoryAdapter);
+                        break;
                     case 1:
-                        item.setIcon(R.drawable.menu_show_transactions);
+                        item.setIcon(R.drawable.menu_show_expenses);
+                        filterCategoryAdapter = new ArrayAdapter<>(this.getActivity(), R.layout.spinner_filter_categories, getResources().getStringArray(R.array.filter_list_of_expenses));
+                        transactionsCategory.setAdapter(filterCategoryAdapter);
                         break;
                     case 2:
-                        item.setIcon(R.drawable.menu_show_expenses);
-                        break;
-                    case 3:
-                        item.setIcon(R.drawable.menu_show_incomes);
+                        item.setIcon(R.drawable.menu_show_transactions);
+                        filterCategoryAdapter = new ArrayAdapter<>(this.getActivity(), R.layout.spinner_filter_categories, getResources().getStringArray(R.array.filter_list_of_transactions));
+                        transactionsCategory.setAdapter(filterCategoryAdapter);
                         break;
                     default:
                         break;
                 }
-
                 updateView();
                 return true;
+            }
+
+            case R.id.menuFilter: {
+                item.setChecked(!item.isChecked());
+                if (item.isChecked()) {
+                    item.setIcon(R.drawable.menu_hide_filter);
+                    filterBar.setVisibility(View.VISIBLE);
+                } else {
+                    item.setIcon(R.drawable.menu_show_filter);
+                    filterBar.setVisibility(View.GONE);
+                    transactionsCategory.setSelection(0);
+                    transactionsOrder = "";
+                    updateView();
+                }
+                return true;
+            }
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -481,6 +533,20 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
                 break;
             }
 
+            case R.id.sortTransactions: {
+                PopupMenu popupMenu = new PopupMenu(getContext(), sortTransactions);
+                popupMenu.setGravity(Gravity.END);
+                popupMenu.inflate(R.menu.popup_menu);
+
+                popupMenu.setOnMenuItemClickListener(item -> {
+                    transactionsOrder = (String) item.getTitle();
+                    updateView();
+                    return true;
+                });
+                popupMenu.show();
+                break;
+            }
+
             default:
                 break;
         }
@@ -489,38 +555,38 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
     @SuppressLint("DefaultLocale")
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void updateView() {
-        List<Transaction> chosenMonthOperations = new LinkedList<>();
-        switch (typeOfView) {
-            case 1:
-                chosenMonthOperations = transactionRepository.findTransactionsInMonth(currentChosenMonth, currentChosenYear);
-                break;
-            case 2:
-                chosenMonthOperations = transactionRepository.findExpensesInMonth(currentChosenMonth, currentChosenYear);
-                break;
-            case 3:
-                chosenMonthOperations = transactionRepository.findIncomesInMonth(currentChosenMonth, currentChosenYear);
-            default:
-                break;
-        }
+        List<Transaction> foundedMonthTransactions = transactionRepository.findTransactionsInMonthByFilter(new String[]{
+                String.valueOf(currentChosenMonth),
+                String.valueOf(currentChosenYear),
+                String.valueOf(transactionsType),
+                transactionsName,
+                (String) transactionsCategory.getSelectedItem(),
+                transactionsOrder});
 
-        double sumOfCurrentChosenMonthOperations = chosenMonthOperations.stream()
+        double sumOfCurrentChosenMonthTransactions = foundedMonthTransactions.stream()
                 .mapToDouble(Transaction::getAmount)
                 .sum();
 
-        double sumOfCurrentChosenMonthExpenses = Math.abs(transactionRepository.getSumOfMonthlyExpenses(currentChosenMonth, currentChosenYear));
+        double sumOfCurrentChosenMonthExpenses = foundedMonthTransactions.stream()
+                .filter(o -> o.getType() == 1)
+                .mapToDouble(Transaction::getAmount)
+                .sum();
 
         double sumOfActualDayExpenses = 0;
         if (currentChosenMonth == actualMonth && currentChosenYear == actualYear) {
             sumOfActualDayExpenses = Math.abs(transactionRepository.getSumOfDailyExpenses(actualDay, actualMonth, actualYear));
         }
 
+        List<Item> monthTransactionsListWithAddedHeaders = sortAndAddHeaders(foundedMonthTransactions);
+        currentChosenMonthAndYear.setText(convertMonthToString(currentChosenMonth + 1, currentChosenYear)); //months are indexed starting from zero
+
         Spannable sumOfMonthlyTransactions;
-        if (sumOfCurrentChosenMonthOperations >= 0) {
-            sumOfMonthlyTransactions = new SpannableString(String.format("+%.2f", sumOfCurrentChosenMonthOperations));
-            sumOfMonthlyTransactions.setSpan(new ForegroundColorSpan(ContextCompat.getColor(getContext(), R.color.sum_greater_than_zero)), 0, sumOfMonthlyTransactions.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        if (sumOfCurrentChosenMonthTransactions >= 0) {
+            sumOfMonthlyTransactions = new SpannableString(String.format("+%.2f", sumOfCurrentChosenMonthTransactions));
+            sumOfMonthlyTransactions.setSpan(new ForegroundColorSpan(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.sum_greater_than_zero)), 0, sumOfMonthlyTransactions.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         } else {
-            sumOfMonthlyTransactions = new SpannableString(String.format("%.2f", sumOfCurrentChosenMonthOperations));
-            sumOfMonthlyTransactions.setSpan(new ForegroundColorSpan(ContextCompat.getColor(getContext(), R.color.sum_lesser_than_zero)), 0, sumOfMonthlyTransactions.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            sumOfMonthlyTransactions = new SpannableString(String.format("%.2f", sumOfCurrentChosenMonthTransactions));
+            sumOfMonthlyTransactions.setSpan(new ForegroundColorSpan(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.sum_lesser_than_zero)), 0, sumOfMonthlyTransactions.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
         monthlyTransactionSum.setText(sumOfMonthlyTransactions);
 
@@ -538,42 +604,27 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
             monthlyTransactionSum.append(limitExceeded);
         }
 
-        List<Item> monthTransactionsListWithAddedHeaders = sortAndAddHeaders(chosenMonthOperations);
-        currentChosenMonthAndYear.setText(convertMonthToString(currentChosenMonth + 1, currentChosenYear)); //months are indexed starting from zero
-
         itemAdapter.clear();
         itemAdapter.addAll(monthTransactionsListWithAddedHeaders);
         itemAdapter.notifyDataSetChanged();
     }
 
-    @SuppressLint("DefaultLocale")
     @RequiresApi(api = Build.VERSION_CODES.N)
-    private void updateView(String newText) {
-        List<Transaction> foundedMonthTransactions = transactionRepository.search(newText, currentChosenMonth, currentChosenYear);
-        double sumOfFoundedMonthTransactions = foundedMonthTransactions.stream()
-                .mapToDouble(Transaction::getAmount)
-                .sum();
-        List<Item> monthTransactionsListWithAddedHeaders = sortAndAddHeaders(foundedMonthTransactions);
-
-        if (sumOfFoundedMonthTransactions >= 0) {
-            monthlyTransactionSum.setText(String.format("+%.2f", sumOfFoundedMonthTransactions));
-            monthlyTransactionSum.setTextColor(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.ColorPrimary));
-        } else {
-            monthlyTransactionSum.setText(String.format("%.2f", sumOfFoundedMonthTransactions));
-            monthlyTransactionSum.setTextColor(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.backgroundColorPopup));
-        }
-
-        itemAdapter.clear();
-        itemAdapter.addAll(monthTransactionsListWithAddedHeaders);
-        itemAdapter.notifyDataSetChanged();
-    }
-
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        if (parent.getId() == R.id.chooseTransactionCategory) {
-            String transactionTypeName = chooseTransactionCategory.getSelectedItem().toString().toLowerCase().replace(" ", "_");
-            int idOfSuitableDrawableForTransactionTypeName = Objects.requireNonNull(getContext()).getResources().getIdentifier(transactionTypeName, "drawable", getContext().getPackageName());
-            transactionCategoryImage.setBackgroundResource(idOfSuitableDrawableForTransactionTypeName);
+        switch (parent.getId()) {
+            case R.id.chooseTransactionCategory: {
+                String transactionTypeName = chooseTransactionCategory.getSelectedItem().toString().toLowerCase().replace(" ", "_");
+                int idOfSuitableDrawableForTransactionTypeName = Objects.requireNonNull(getContext()).getResources().getIdentifier(transactionTypeName, "drawable", getContext().getPackageName());
+                transactionCategoryImage.setBackgroundResource(idOfSuitableDrawableForTransactionTypeName);
+                break;
+            }
+            case R.id.filterTransactionCategory: {
+                updateView();
+                break;
+            }
+            default:
+                break;
         }
     }
 
@@ -793,7 +844,9 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
             int transactionType = 0;
             if (categoryName.equals("Expense")) {
                 transactionType = 1;
-                transactionAmount = -transactionAmount;
+                if (!(transactionAmount == 0)) {
+                    transactionAmount = -transactionAmount;
+                }
             }
             String transactionCategory = chooseTransactionCategory.getSelectedItem().toString();
             Date transactionDate = convertStringToDate(chooseTransactionDate.getText().toString());
@@ -934,19 +987,25 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
-    public boolean onQueryTextChange(String newText) {
-        if (newText == null || newText.trim().isEmpty()) {
+    public boolean onQueryTextChange(String writtenText) {
+        if (writtenText == null || writtenText.trim().isEmpty()) {
             resetSearch();
             return false;
         }
 
-        updateView(newText);
+        transactionsName = writtenText;
+        updateView();
         return false;
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public void resetSearch() {
+        transactionsName = "";
+        updateView();
+    }
+
     private List<Item> sortAndAddHeaders(List<Transaction> transactionList) {
-        List<Item> sortedListByDate = new LinkedList<>();
-        Collections.sort(transactionList);
+        List<Item> sortedList = new LinkedList<>();
 
         Date dateHolder = new Date();
         //loops through the list and add a header signalising new day
@@ -954,20 +1013,14 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
             //if it is the start of a new day create a new header (as told higher)
             if (!(dateHolder.equals(transactionList.get(i).getDate()))) {
                 //if it's date header make new and add it
-                sortedListByDate.add(new Header(transactionList.get(i).getDate()));
+                sortedList.add(new Header(transactionList.get(i).getDate()));
                 dateHolder = transactionList.get(i).getDate();
             }
             //if it's transaction just add it
-            sortedListByDate.add(transactionList.get(i));
+            sortedList.add(transactionList.get(i));
         }
 
-        return sortedListByDate;
-    }
-
-
-    @RequiresApi(api = Build.VERSION_CODES.N)
-    public void resetSearch() {
-        updateView();
+        return sortedList;
     }
 
     public Date convertStringToDate(String dateAsString) {
