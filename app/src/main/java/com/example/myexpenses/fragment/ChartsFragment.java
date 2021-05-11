@@ -50,7 +50,7 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.summingDouble;
 
 
-public class ChartFragment extends Fragment implements View.OnClickListener {
+public class ChartsFragment extends Fragment implements View.OnClickListener {
 
     private TransactionRepository transactionRepository;
     private TextView actualChosenMonth;

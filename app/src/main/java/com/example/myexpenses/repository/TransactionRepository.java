@@ -59,6 +59,13 @@ public class TransactionRepository extends SQLiteOpenHelper {
         db.close();
     }
 
+    public Cursor raw() {
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        return db.rawQuery("SELECT * FROM " + TABLE_TRANSACTION , new String[]{});
+    }
+
     public List<Transaction> findAll() {
         List<Transaction> transactionList = new ArrayList<>();
         String selectQuery = "SELECT * FROM " + TABLE_TRANSACTION;

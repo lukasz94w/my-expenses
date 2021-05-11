@@ -5,6 +5,11 @@
     <string name="save_new_transaction"><b>Save as new</b></string>
     <string name="delete_transaction"><b>Delete</b></string>
 
+
+    <string name="openDrawer">open_drawer</string>
+    <string name="closeDrawer">close_drawer</string>
+
+
     <string name="set_limits">Limits</string>
     <string name="details">Details</string>
     <string name="daily_limit">Daily limit (actual day):</string>
@@ -46,6 +51,19 @@
     <string name="order_by_category_asc">By category (ascending)</string>
 
     <string name="monthly_expenses">Monthly expenses</string>
+    <string name="list_transactions_title">Basic overview</string>
+    <string name="limits_title">Set limits</string>
+    <string name="charts">Graphic overview</string>
+    <string name="title_activity_limits">LimitsActivity</string>
+    <string name="first_fragment_label">First Fragment</string>
+
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="export">Export</string>
     <string-array name="list_of_expenses">
         <item>Food</item>
         <item>Car</item>
@@ -60,7 +78,6 @@
         <item>Gift</item>
         <item>Other</item>
     </string-array>
-
     <string-array name="filter_list_of_transactions">
         <item>All categories</item>
         <item>Food</item>
@@ -74,6 +91,7 @@
         <item>Gift</item>
         <item>Other</item>
     </string-array>
+
     <string-array name="filter_list_of_expenses">
         <item>All categories</item>
         <item>Food</item>
