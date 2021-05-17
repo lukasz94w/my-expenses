@@ -1,6 +1,7 @@
 package com.example.myexpenses;
 
 import android.content.Intent;
+import android.media.audiofx.BassBoost;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -78,6 +79,10 @@ public class MainActivity extends AppCompatActivity {
                     return true;
                 case R.id.export:
                     startActivity(new Intent(MainActivity.this, ExportActivity.class));
+                    drawer.closeDrawers();
+                    return true;
+                case R.id.settings:
+                    startActivity(new Intent(MainActivity.this, SettingsActivity.class));
                     drawer.closeDrawers();
                     return true;
                 default:

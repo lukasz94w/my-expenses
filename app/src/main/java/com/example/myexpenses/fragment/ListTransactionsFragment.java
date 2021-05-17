@@ -569,7 +569,7 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
 
         double sumOfCurrentChosenMonthExpenses = foundedMonthTransactions.stream()
                 .filter(o -> o.getType() == 1)
-                .mapToDouble(Transaction::getAmount)
+                .mapToDouble(o -> Math.abs(o.getAmount()))
                 .sum();
 
         double sumOfActualDayExpenses = 0;
@@ -872,20 +872,15 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
         if (group.getId() == R.id.chooseTransactionType) {
             int idOfCheckedRadiobutton = chooseTransactionType.getCheckedRadioButtonId();
             RadioButton checkedRadiobutton = popupView.findViewById(idOfCheckedRadiobutton);
-            checkedRadiobutton.setChecked(true);
             String chosenTransactionTypeName = checkedRadiobutton.getText().toString();
 
+            ArrayAdapter<String> chooseCategoryAdapter;
             if (chosenTransactionTypeName.equals("Expense")) {
-                chosenTransactionExpense.setChecked(true);
-                chosenTransactionIncome.setChecked(false);
-                ArrayAdapter<String> chooseCategoryAdapter = new ArrayAdapter<>(this.getActivity(), R.layout.spinner_categories, getResources().getStringArray(R.array.list_of_expenses));
-                chooseTransactionCategory.setAdapter(chooseCategoryAdapter);
+                chooseCategoryAdapter = new ArrayAdapter<>(this.getActivity(), R.layout.spinner_categories, getResources().getStringArray(R.array.list_of_expenses));
             } else {
-                chosenTransactionExpense.setChecked(false);
-                chosenTransactionIncome.setChecked(true);
-                ArrayAdapter<String> chooseCategoryAdapter = new ArrayAdapter<String>(this.getActivity(), R.layout.spinner_categories, getResources().getStringArray(R.array.list_of_incomes));
-                chooseTransactionCategory.setAdapter(chooseCategoryAdapter);
+                chooseCategoryAdapter = new ArrayAdapter<String>(this.getActivity(), R.layout.spinner_categories, getResources().getStringArray(R.array.list_of_incomes));
             }
+            chooseTransactionCategory.setAdapter(chooseCategoryAdapter);
         }
     }
 
@@ -1090,97 +1085,6 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
             break;
         }
         return false;
-    }
-
-    //TEST METHODS
-    public void createTestRecords() {
-
-        for (int i = 0; i < 15; i++) {
-            //INCOMES
-            transactionRepository.create(new Transaction(0, "Wypłata za październik", (float) (new Random().nextInt(5000)), "Payment", returnDate(new Random().nextInt(28) + 1 + ".10.2020")));
-            transactionRepository.create(new Transaction(0, "Wypłata za listopad", (float) (new Random().nextInt(5000)), "Payment", returnDate(new Random().nextInt(28) + 1 + ".11.2020")));
-            transactionRepository.create(new Transaction(0, "Wypłata za grudzień", (float) (new Random().nextInt(5000)), "Payment", returnDate(new Random().nextInt(28) + 1 + ".12.2020")));
-            transactionRepository.create(new Transaction(0, "Premia na święta", (float) (new Random().nextInt(5000)), "Payment", returnDate(new Random().nextInt(28) + 1 + ".12.2020")));
-            transactionRepository.create(new Transaction(0, "Wypłata za styczeń", (float) (new Random().nextInt(5000)), "Payment", returnDate(new Random().nextInt(28) + 1 + ".01.2021")));
-            transactionRepository.create(new Transaction(0, "Wypłata za luty", (float) (new Random().nextInt(5000)), "Payment", returnDate(new Random().nextInt(28) + 1 + ".02.2020")));
-            transactionRepository.create(new Transaction(0, "Wypłata za marzec", (float) (new Random().nextInt(5000)), "Payment", returnDate(new Random().nextInt(28) + 1 + ".03.2021")));
-            transactionRepository.create(new Transaction(0, "Wygrana w lotka na początku marca", (float) (new Random().nextInt(5000)), "Payment", returnDate(new Random().nextInt(28) + 1 + ".03.2021")));
-            transactionRepository.create(new Transaction(0, "Testowy wyraz bardzo dlugi", (float) (new Random().nextInt(5000)), "Payment", returnDate(new Random().nextInt(28) + 1 + ".04.2021")));
-
-            //OCTOBER
-            transactionRepository.create(new Transaction(1, "Pizza", (float) new Random().nextInt(250) - 250, "Food", returnDate(new Random().nextInt(28) + 1 + ".10.2020")));
-            transactionRepository.create(new Transaction(1, "Trankowanie", (float) new Random().nextInt(250) - 250, "Car", returnDate(new Random().nextInt(28) + 1 + ".10.2020")));
-            transactionRepository.create(new Transaction(1, "CD Action", (float) new Random().nextInt(250) - 250, "Game", returnDate(new Random().nextInt(28) + 1 + ".10.2020")));
-            transactionRepository.create(new Transaction(1, "Przegląd roweru", (float) new Random().nextInt(250) - 250, "Sport", returnDate(new Random().nextInt(28) + 1 + ".10.2020")));
-            transactionRepository.create(new Transaction(1, "Karta graficzna", (float) new Random().nextInt(250) - 250, "Sport", returnDate(new Random().nextInt(28) + 1 + ".10.2020")));
-
-            //NOVEMBER
-            transactionRepository.create(new Transaction(1, "Wycieczka Wawka", (float) new Random().nextInt(250) - 250, "Hobby", returnDate(new Random().nextInt(28) + 1 + ".11.2020")));
-            transactionRepository.create(new Transaction(1, "Fifa 2021", (float) new Random().nextInt(250) - 250, "Game", returnDate(new Random().nextInt(28) + 1 + ".11.2020")));
-            transactionRepository.create(new Transaction(1, "CD Action", (float) new Random().nextInt(250) - 250, "Game", returnDate(new Random().nextInt(28) + 1 + ".11.2020")));
-            transactionRepository.create(new Transaction(1, "Delegacja na Słowację", (float) new Random().nextInt(250) - 250, "Hobby", returnDate(new Random().nextInt(28) + 1 + ".11.2020")));
-
-            //DECEMBER
-            transactionRepository.create(new Transaction(1, "Prezent na Boże Narodziny mama", (float) new Random().nextInt(250) - 250, "Other", returnDate(new Random().nextInt(28) + 1 + ".12.2020")));
-            transactionRepository.create(new Transaction(1, "Prezent na Boże Narodziny ojciec", (float) new Random().nextInt(250) - 250, "Other", returnDate(new Random().nextInt(28) + 1 + ".12.2020")));
-            transactionRepository.create(new Transaction(1, "Mikołajki PLUM", (float) new Random().nextInt(250) - 250, "Other", returnDate(new Random().nextInt(28) + 1 + ".12.2020")));
-            transactionRepository.create(new Transaction(1, "Wymiana lusterka YARIS", (float) new Random().nextInt(250) - 250, "Car", returnDate(new Random().nextInt(28) + 1 + ".12.2020")));
-
-            //JANUARY
-            transactionRepository.create(new Transaction(1, "Sylwester", (float) new Random().nextInt(250) - 250, "Other", returnDate(new Random().nextInt(28) + 1 + ".01.2021")));
-            transactionRepository.create(new Transaction(1, "Happy Meal w macu", (float) new Random().nextInt(250) - 250, "Food", returnDate(new Random().nextInt(28) + 1 + ".01.2021")));
-            transactionRepository.create(new Transaction(1, "Pizza", (float) new Random().nextInt(250) - 250, "Food", returnDate(new Random().nextInt(28) + 1 + ".01.2021")));
-            transactionRepository.create(new Transaction(1, "Tankowanie", (float) new Random().nextInt(250) - 250, "Car", returnDate(new Random().nextInt(28) + 1 + ".01.2021")));
-
-            //FEBRUARY
-            transactionRepository.create(new Transaction(1, "Spodnie do biegania", (float) new Random().nextInt(250) - 250, "Sport", returnDate(new Random().nextInt(28) + 1 + ".02.2021")));
-            transactionRepository.create(new Transaction(1, "Koszula galowa", (float) new Random().nextInt(250) - 250, "Other", returnDate(new Random().nextInt(28) + 1 + ".02.2021")));
-            transactionRepository.create(new Transaction(1, "Pizza", (float) new Random().nextInt(250) - 250, "Food", returnDate(new Random().nextInt(28) + 1 + ".02.2021")));
-            transactionRepository.create(new Transaction(1, "Tankowanie", (float) new Random().nextInt(250) - 250, "Car", returnDate(new Random().nextInt(28) + 1 + ".02.2021")));
-            transactionRepository.create(new Transaction(1, "Zakupy w LIDLu", (float) new Random().nextInt(250) - 250, "Food", returnDate(new Random().nextInt(28) + 1 + ".02.2021")));
-
-            //MARCH
-            transactionRepository.create(new Transaction(1, "Bardzo długi wpis 1234567999999999", (float) new Random().nextInt(250) - 250, "Game", returnDate(new Random().nextInt(28) + 1 + ".03.2021")));
-            transactionRepository.create(new Transaction(1, "Bardzo długi wpis 1234567890", (float) new Random().nextInt(250) - 250, "Car", returnDate(new Random().nextInt(28) + 1 + ".03.2021")));
-            transactionRepository.create(new Transaction(1, "Bardzo długi wpis 1234567", (float) new Random().nextInt(250) - 250, "Food", returnDate(new Random().nextInt(28) + 1 + ".03.2021")));
-            transactionRepository.create(new Transaction(1, "Bardzo długi wpis 1234567", (float) new Random().nextInt(250) - 250, "Food", returnDate(new Random().nextInt(28) + 1 + ".03.2021")));
-            transactionRepository.create(new Transaction(1, "Buty do biegania", (float) new Random().nextInt(250) - 250, "Sport", returnDate(new Random().nextInt(28) + 1 + ".03.2021")));
-            transactionRepository.create(new Transaction(1, "Opaska Xiaomi", (float) new Random().nextInt(250) - 250, "Sport", returnDate(new Random().nextInt(28) + 1 + ".03.2021")));
-            transactionRepository.create(new Transaction(1, "DOOM", (float) new Random().nextInt(250) - 250, "Game", returnDate(new Random().nextInt(28) + 1 + ".03.2021")));
-            transactionRepository.create(new Transaction(1, "Tankowanie", (float) new Random().nextInt(250) - 250, "Car", returnDate(new Random().nextInt(28) + 1 + ".03.2021")));
-            transactionRepository.create(new Transaction(1, "Zakupy w LIDLu", (float) new Random().nextInt(250) - 250, "Food", returnDate(new Random().nextInt(28) + 1 + ".03.2021")));
-
-            //APRIL
-            transactionRepository.create(new Transaction(1, "Bardzo długi wpis 1234567999999999", (float) new Random().nextInt(250) - 250, "Game", returnDate(new Random().nextInt(28) + 1 + ".04.2021")));
-            transactionRepository.create(new Transaction(1, "Bardzo długi wpis 1234567890", (float) new Random().nextInt(250) - 250, "Car", returnDate(new Random().nextInt(28) + 1 + ".04.2021")));
-            transactionRepository.create(new Transaction(1, "Bardzo długi wpis 1234567", (float) new Random().nextInt(250) - 250, "Food", returnDate(new Random().nextInt(28) + 1 + ".04.2021")));
-            transactionRepository.create(new Transaction(1, "Bardzo długi wpis 1234567", (float) new Random().nextInt(250) - 250, "Food", returnDate(new Random().nextInt(28) + 1 + ".04.2021")));
-            transactionRepository.create(new Transaction(1, "Buty do biegania", (float) new Random().nextInt(250) - 250, "Sport", returnDate(new Random().nextInt(28) + 1 + ".04.2021")));
-            transactionRepository.create(new Transaction(1, "Opaska Xiaomi", (float) new Random().nextInt(250) - 250, "Sport", returnDate(new Random().nextInt(28) + 1 + ".04.2021")));
-            transactionRepository.create(new Transaction(1, "DOOM", (float) new Random().nextInt(250) - 250, "Game", returnDate(new Random().nextInt(28) + 1 + ".04.2021")));
-            transactionRepository.create(new Transaction(1, "Tankowanie", (float) new Random().nextInt(250) - 250, "Car", returnDate(new Random().nextInt(28) + 1 + ".04.2021")));
-            transactionRepository.create(new Transaction(1, "Zakupy w LIDLu", (float) new Random().nextInt(250) - 250, "Food", returnDate(new Random().nextInt(28) + 1 + ".04.2021")));
-
-            //MAY
-            transactionRepository.create(new Transaction(1, "Prezent na komunię", (float) new Random().nextInt(250) - 250, "Other", returnDate(new Random().nextInt(28) + 1 + ".05.2021")));
-        }
-    }
-
-    public Date returnDate(String date) {
-        final String userInput = date;
-        final String[] timeParts = userInput.split("\\.");
-        Calendar cal = Calendar.getInstance();
-
-        //zero
-        cal.set(Calendar.MILLISECOND, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-
-        cal.set(Calendar.DAY_OF_MONTH, Integer.parseInt(timeParts[0]));
-        cal.set(Calendar.MONTH, Integer.parseInt(timeParts[1]) - 1);
-        cal.set(Calendar.YEAR, Integer.parseInt(timeParts[2]));
-        return cal.getTime();
     }
 
     @Override

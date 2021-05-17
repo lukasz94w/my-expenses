@@ -1,6 +1,7 @@
 package com.example.myexpenses.fragment;
 
 import android.annotation.SuppressLint;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
@@ -46,6 +47,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static android.content.Context.MODE_PRIVATE;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.summingDouble;
 
@@ -294,9 +296,15 @@ public class ChartsFragment extends Fragment implements View.OnClickListener {
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void drawMonthlyTransactionBarCharts(List<Transaction> monthTransactions, int numberOfDaysInMonth) {
+        SharedPreferences sharedPreferences = this.getActivity().getSharedPreferences("SharedPreferences", MODE_PRIVATE);
+        //default value if it not have been initialized yet
+        boolean shouldShowIncomesBarCharts = sharedPreferences.getBoolean("Should show incomes bar charts", true);
+
         //return lists of transactions from whole month grouped by category (f.e. sport, health)
         List<List<Transaction>> listsOfMonthTransactionsGroupedByCategory = new LinkedList<>(
                 monthTransactions.stream()
+//                        .filter(shouldShowIncomesBarCharts? p -> p.getType() == 1 : p -> true)
+                        .filter(p -> shouldShowIncomesBarCharts || p.getType() == 1)
                         .collect(Collectors.groupingBy(Transaction::getCategory))
                         .values());
 

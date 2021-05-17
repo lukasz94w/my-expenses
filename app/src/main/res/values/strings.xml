@@ -52,7 +52,7 @@
 
     <string name="monthly_expenses">Monthly expenses</string>
     <string name="list_transactions_title">Basic overview</string>
-    <string name="limits_title">Set limits</string>
+    <string name="limits_title">Limits</string>
     <string name="charts">Graphic overview</string>
     <string name="title_activity_limits">LimitsActivity</string>
     <string name="first_fragment_label">First Fragment</string>
@@ -64,6 +64,17 @@
     <!-- Strings used for fragments for navigation -->
     <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
     <string name="export">Export</string>
+    <string name="expenses">Expenses</string>
+    <string name="incomes">Incomes</string>
+    <string name="save_to_file">Save to file</string>
+    <string name="save_to_csv_file">Save to CSV file</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings">Settings</string>
+    <string name="settings_present_incomes">Present incomes on bar charts</string>
+    <string name="settings_generate_random_data">Generate random data</string>
+    <string name="deleteAllData">Delete all data</string>
+    <string name="delete_all_data_warning">Are you sure?\nThis will delete all data</string>
+    <string name="random_data_message">This will create random data\nProceed?</string>
     <string-array name="list_of_expenses">
         <item>Food</item>
         <item>Car</item>

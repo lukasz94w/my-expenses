@@ -5,8 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.text.TextUtils;
-import android.util.Log;
 
 import com.example.myexpenses.model.Transaction;
 
@@ -59,11 +57,48 @@ public class TransactionRepository extends SQLiteOpenHelper {
         db.close();
     }
 
-    public Cursor raw() {
+    public Cursor raw(int dayDateFrom, int monthDateFrom, int yearDateFrom, int dayDateTo, int monthDateTo, int yearDateTo, int transactionType, String transactionCategory) {
+        List<String> queryValues = new ArrayList<>();
+        String queryParams = "";
+
+        if (!(dayDateFrom == 0)) {
+            List<Long> dateRangeBoundaries = getDateBoundaries(
+                    dayDateFrom,
+                    monthDateFrom,
+                    yearDateFrom,
+                    dayDateTo,
+                    monthDateTo,
+                    yearDateTo);
+            Long dateFrom = dateRangeBoundaries.get(0);
+            Long dateTo = dateRangeBoundaries.get(1);
+            queryParams = queryParams + TRANSACTION_DATE + " >=? AND " + TRANSACTION_DATE + " <? ";
+            queryValues.add(String.valueOf(dateFrom));
+            queryValues.add(String.valueOf(dateTo));
+        }
+
+        if (!(transactionType == 2)) {
+            if (!queryParams.equals("")) {
+                queryParams = queryParams + "AND " + TRANSACTION_TYPE + " =? ";
+            } else {
+                queryParams = queryParams + TRANSACTION_TYPE + " =? ";
+            }
+            queryValues.add(String.valueOf(transactionType));
+        }
+
+        if (!transactionCategory.equals("")) {
+            if (!queryParams.equals("")) {
+                queryParams = queryParams + "AND " + TRANSACTION_CATEGORY + " =? ";
+            } else {
+                queryParams = queryParams + TRANSACTION_CATEGORY + " =? ";
+            }
+            queryValues.add(transactionCategory);
+        }
+
+        String[] finalValues = new String[queryValues.size()];
+        queryValues.toArray(finalValues);
 
         SQLiteDatabase db = this.getReadableDatabase();
-
-        return db.rawQuery("SELECT * FROM " + TABLE_TRANSACTION , new String[]{});
+        return db.query(TABLE_TRANSACTION, null, queryParams, finalValues, null, null, null, null);
     }
 
     public List<Transaction> findAll() {
@@ -362,6 +397,36 @@ public class TransactionRepository extends SQLiteOpenHelper {
             calendar.set(Calendar.DAY_OF_MONTH, 1); //problem of 29 march
             calendar.set(Calendar.YEAR, year);
             calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH));
+            calendar.set(Calendar.HOUR_OF_DAY, 23);
+            calendar.set(Calendar.MINUTE, 59);
+            calendar.set(Calendar.SECOND, 59);
+            calendar.set(Calendar.MILLISECOND, 999);
+            Long endOfMonthUnix = calendar.getTime().getTime();
+            monthBoundaries.add(endOfMonthUnix);
+        }
+        return monthBoundaries;
+    }
+
+    private List<Long> getDateBoundaries(int dayDateFrom, int monthDateFrom, int yearDateFrom, int dayDateTo, int monthDateTo, int yearDateTo) {
+        List<Long> monthBoundaries = new LinkedList<>();
+        {
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.MONTH, monthDateFrom);
+            calendar.set(Calendar.YEAR, yearDateFrom);
+            calendar.set(Calendar.DAY_OF_MONTH, dayDateFrom);
+            calendar.set(Calendar.HOUR_OF_DAY, 0);
+            calendar.set(Calendar.MINUTE, 0);
+            calendar.set(Calendar.SECOND, 0);
+            calendar.set(Calendar.MILLISECOND, 0);
+            Long startOfMonthUnix = calendar.getTime().getTime();
+            monthBoundaries.add(startOfMonthUnix);
+        }
+
+        {
+            Calendar calendar = Calendar.getInstance();
+            calendar.set(Calendar.MONTH, monthDateTo);
+            calendar.set(Calendar.YEAR, yearDateTo);
+            calendar.set(Calendar.DAY_OF_MONTH, dayDateTo);
             calendar.set(Calendar.HOUR_OF_DAY, 23);
             calendar.set(Calendar.MINUTE, 59);
             calendar.set(Calendar.SECOND, 59);
