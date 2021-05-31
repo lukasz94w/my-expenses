@@ -22,6 +22,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+import androidx.core.app.NavUtils;
 
 import com.example.myexpenses.repository.TransactionRepository;
 import com.opencsv.CSVWriter;
@@ -309,5 +310,12 @@ public class ExportActivity extends AppCompatActivity implements View.OnClickLis
                 Toast.makeText(ExportActivity.this, "Error during saving file", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    //prevent left checked icon on navigation drawer and also clear filters f.e.
+    @Override
+    public void onBackPressed() {
+        //super.onBackPressed();
+        NavUtils.navigateUpFromSameTask(this);
     }
 }

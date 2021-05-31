@@ -14,22 +14,24 @@
 
             <ImageButton
                 android:id="@+id/previousMonth"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="37dp"
+                android:layout_height="37dp"
                 android:layout_gravity="center_vertical"
-                android:layout_marginStart="5dp"
-                android:background="@android:color/transparent"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="6.5dp"
                 android:clickable="true"
+                android:background="@drawable/ripple_image_buttons"
                 android:src="@drawable/left_arrow"
                 android:focusable="true" />
 
             <ImageButton
                 android:id="@+id/nextMonth"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="37dp"
+                android:layout_height="37dp"
+                android:layout_marginTop="7dp"
                 android:layout_gravity="center_vertical"
                 android:layout_toEndOf="@id/currentChosenMonthAndYear"
-                android:background="@android:color/transparent"
+                android:background="@drawable/ripple_image_buttons"
                 android:clickable="true"
                 android:src="@drawable/right_arrow"
                 android:focusable="true" />
@@ -49,6 +51,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
                 android:layout_toEndOf="@id/previousMonth"
                 android:textSize="18sp" />
 

@@ -2,6 +2,7 @@ package com.example.myexpenses;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.NavUtils;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -318,5 +319,10 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         }
     }
 
-
+    //prevent left checked icon on navigation drawer and also clear filters f.e.
+    @Override
+    public void onBackPressed() {
+        //super.onBackPressed();
+        NavUtils.navigateUpFromSameTask(this);
+    }
 }

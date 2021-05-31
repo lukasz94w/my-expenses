@@ -53,4 +53,9 @@
     <color name="below_limit">#43D500</color>
     <color name="over_limit">#D50700</color>
     <!--    <color name="grid_color">#FFFFFF</color>-->
+
+    <color name="check_box_color">#75000000</color>
+
+    <color name="text_color">#5C5F59</color>
+
 </resources>

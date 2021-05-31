@@ -13,6 +13,25 @@
         <!-- if I will use android.support.v7.widget.PopupMenu I should use <item name="popupMenuStyle">@style/MyPopupMenu</item>-->
         <item name="android:itemBackground">@color/ColorPrimary</item> //popupMenuItemColor
         <item name="android:colorBackground">@color/ColorPrimary</item> //menuBackgroundColor
+
+        <item name="searchViewStyle">@style/SearchViewStyle</item>
+        <item name="drawerArrowStyle">@style/DrawerArrowStyle</item>
+
+        <item name="toolbarStyle">@style/custom_toolbar</item>
+
+        <item name="colorControlNormal">@color/white</item>
+
+        <item name="windowActionModeOverlay">true</item>
+
+    </style>
+
+    <style name="custom_toolbar" parent="@style/Widget.AppCompat.Toolbar">
+        <item name="titleTextColor">@color/white</item>
+    </style>
+
+    <style name="SplashTheme" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:background">@drawable/background_splash</item>
+        <item name="android:windowAnimationStyle">@null</item>
     </style>
 
     <style name="MyPopupMenu" parent="@style/Widget.AppCompat.Light.PopupMenu">
@@ -32,7 +51,27 @@
         <item name="android:background">#FFFFFF</item>
     </style>
 
+    <style name="SearchViewStyle" parent="Widget.AppCompat.SearchView">
+        <!-- Gets rid of the "underline" in the text -->
+        <item name="queryBackground">@android:color/transparent</item>
+        <!-- Gets rid of the search icon when the SearchView is expanded -->
+        <item name="searchHintIcon">@null</item>
+        <!-- The hint text that appears when the user has not typed anything -->
+        <item name="queryHint">@string/search_hint</item>
+        <item name="android:textColorHint">@color/ColorPrimaryBright</item>
+        <item name="closeIcon">@drawable/close</item>
+        <item name="android:editTextColor">@android:color/white</item>
+    </style>
+
+    //hamburger color icon
+    <style name="DrawerArrowStyle" parent="Widget.AppCompat.DrawerArrowToggle">
+        <item name="color">@android:color/white</item>
+    </style>
+
+
     <style name="DialogTheme" parent="Theme.AppCompat.Light.Dialog">
         <item name="colorAccent">@color/ColorPrimary</item>
     </style>
+
+    <string name="search_hint">Search...</string>
 </resources>

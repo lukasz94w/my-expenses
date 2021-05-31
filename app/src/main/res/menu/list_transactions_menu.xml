@@ -15,9 +15,10 @@
 
     <item
         android:id="@+id/menuActionSearch"
+        android:icon="@drawable/search"
         android:orderInCategory="1"
-        myapp:showAsAction="always"
-        myapp:actionViewClass="android.widget.SearchView"
+        myapp:showAsAction="always|collapseActionView"
+        myapp:actionViewClass="androidx.appcompat.widget.SearchView"
         android:title="Search" />
 
 

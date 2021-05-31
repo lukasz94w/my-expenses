@@ -12,10 +12,11 @@ import androidx.core.content.ContextCompat;
 import com.example.myexpenses.R;
 import com.example.myexpenses.customAdapter.ItemAdapter;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 
-public class Transaction implements Comparable<Transaction>, Item {
+public class Transaction implements Comparable<Transaction>, Item, Serializable {
 
     private int id;
     private int type;

@@ -10,9 +10,11 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
@@ -61,6 +63,7 @@ public class ChartsFragment extends Fragment implements View.OnClickListener {
     private int currentChosenMonth;
     private int currentChosenYear;
     private Calendar calendar;
+    private ScrollView chartScrollContainer;
 
     private static class BarEntryHolder {
         float xVal;
@@ -109,8 +112,9 @@ public class ChartsFragment extends Fragment implements View.OnClickListener {
         monthlyTransactionSum = view.findViewById(R.id.monthlyTransactionSum);
 
         chartContainer = view.findViewById(R.id.chartContainer);
+        chartScrollContainer = (ScrollView) view.findViewById(R.id.chartsScrollContainer);
 
-        updateView();
+        updateView("NO_ANIMATION");
 
         return view;
     }
@@ -126,7 +130,7 @@ public class ChartsFragment extends Fragment implements View.OnClickListener {
                 } else {
                     currentChosenMonth--;
                 }
-                updateView();
+                updateView("LEFT_TO_RIGHT_ANIMATION");
                 break;
             }
 
@@ -137,7 +141,7 @@ public class ChartsFragment extends Fragment implements View.OnClickListener {
                 } else {
                     currentChosenMonth++;
                 }
-                updateView();
+                updateView("RIGHT_TO_LEFT_ANIMATION");
                 break;
             }
 
@@ -148,7 +152,7 @@ public class ChartsFragment extends Fragment implements View.OnClickListener {
 
     @SuppressLint("DefaultLocale")
     @RequiresApi(api = Build.VERSION_CODES.N)
-    private void updateView() {
+    private void updateView(String typeOfAnimation) {
         calendar.set(Calendar.MONTH, currentChosenMonth);
         calendar.set(Calendar.YEAR, currentChosenYear);
         int numberOfDaysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
@@ -161,16 +165,35 @@ public class ChartsFragment extends Fragment implements View.OnClickListener {
         actualChosenMonth.setText(convertMonthToString(currentChosenMonth + 1, currentChosenYear)); //months are indexed starting from zero
         if (totalSum >= 0) {
             monthlyTransactionSum.setText(String.format("+%.2f", totalSum));
-            monthlyTransactionSum.setTextColor(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.ColorPrimary));
+            monthlyTransactionSum.setTextColor(ContextCompat.getColor(requireContext(), R.color.sum_greater_than_zero));
         } else {
             monthlyTransactionSum.setText(String.format("%.2f", totalSum));
-            monthlyTransactionSum.setTextColor(ContextCompat.getColor(Objects.requireNonNull(getContext()), R.color.backgroundColorPopup));
+            monthlyTransactionSum.setTextColor(ContextCompat.getColor(requireContext(), R.color.sum_lesser_than_zero));
         }
 
         chartContainer.removeAllViews();
         drawMonthlyTransactionOuterPieChart(monthTransactions, numberOfDaysInMonth, totalSum);
         drawMonthlyTransactionInnerPieChart(monthTransactions);
         drawMonthlyTransactionBarCharts(monthTransactions, numberOfDaysInMonth);
+
+        switch(typeOfAnimation) {
+            case "NO_ANIMATION": {
+                break;
+            }
+//            case "RIGHT_TO_LEFT_ANIMATION": {
+//                chartContainer.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.right_to_left));
+//                break;
+//            }
+//            case "LEFT_TO_RIGHT_ANIMATION": {
+//                chartContainer.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.left_to_right));
+//                break;
+//            }
+            default:
+                break;
+        }
+
+        chartScrollContainer.fullScroll(ScrollView.FOCUS_UP);
+        chartScrollContainer.smoothScrollTo(0, 0);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
@@ -188,7 +211,7 @@ public class ChartsFragment extends Fragment implements View.OnClickListener {
         pieChart.setNoDataText("No records found");
         Paint p = pieChart.getPaint(Chart.PAINT_INFO);
         p.setTextSize(27);
-        p.setColor(getResources().getColor(R.color.black));
+        p.setColor(getResources().getColor(R.color.sum_lesser_than_zero));
 
         int idMonthlyTransactionOuterPieChart = 1;
         pieChart.setId(idMonthlyTransactionOuterPieChart);
@@ -214,7 +237,7 @@ public class ChartsFragment extends Fragment implements View.OnClickListener {
                 transactionValue.add(new PieEntry(Math.abs(entry.getValue().floatValue()), entry.getKey()));
                 //prepare colors for values
                 String colorName = (entry.getKey() + "_color").toLowerCase().replace(" ", "_");
-                int colorId = Objects.requireNonNull(getContext()).getResources().getColor(getContext().getResources().getIdentifier(colorName, "color", getContext().getPackageName()));
+                int colorId = requireContext().getResources().getColor(getContext().getResources().getIdentifier(colorName, "color", getContext().getPackageName()));
                 transactionColor.add(colorId);
             }
 
@@ -225,6 +248,7 @@ public class ChartsFragment extends Fragment implements View.OnClickListener {
             pieData.setValueTextColor(Color.DKGRAY);
             pieDataSet.setColors(transactionColor);
             pieChart.setData(pieData);
+            pieChart.animateXY(1000, 1000);
             pieChart.invalidate();
 
             //if outerPieChart contains data, show average transaction per day
@@ -278,7 +302,7 @@ public class ChartsFragment extends Fragment implements View.OnClickListener {
                 } else {
                     colorName = ("incomes_color").toLowerCase().replace(" ", "_");
                 }
-                int colorId = Objects.requireNonNull(getContext()).getResources().getColor(getContext().getResources().getIdentifier(colorName, "color", getContext().getPackageName()));
+                int colorId = requireContext().getResources().getColor(getContext().getResources().getIdentifier(colorName, "color", getContext().getPackageName()));
                 transactionColor.add(colorId);
             }
 
@@ -289,6 +313,7 @@ public class ChartsFragment extends Fragment implements View.OnClickListener {
             pieData.setValueTextColor(Color.DKGRAY);
             pieDataSet.setColors(transactionColor);
             pieChart.setData(pieData);
+            pieChart.animateXY(1000, 1000);
             pieChart.invalidate();
         }
         chartContainer.addView(pieChart, layoutParamsForBarInnerPieChart);
@@ -405,7 +430,7 @@ public class ChartsFragment extends Fragment implements View.OnClickListener {
             ImageView categoryImage = new ImageView(getContext());
             categoryImage.setId(i * 10 + 4);
             String categoryImageResource = listsOfMonthTransactionsGroupedByCategory.get(i).get(0).getCategory().toLowerCase().replace(" ", "_"); //prepare R.drawable.name: toLowerCase() because Android restrict Drawable filenames to not use Capital letters in their names, and also simple replace
-            int res = Objects.requireNonNull(getContext()).getResources().getIdentifier(categoryImageResource, "drawable", getContext().getPackageName());
+            int res = requireContext().getResources().getIdentifier(categoryImageResource, "drawable", getContext().getPackageName());
             categoryImage.setImageResource(res);
             RelativeLayout.LayoutParams layoutParamsForCategoryImage = new RelativeLayout.LayoutParams(80, 80);
             layoutParamsForCategoryImage.addRule(RelativeLayout.BELOW, separatorLine.getId());
@@ -440,6 +465,7 @@ public class ChartsFragment extends Fragment implements View.OnClickListener {
             }
             @SuppressLint("DefaultLocale") String totalAmountForMonthText = String.format("%.2f", sumOfTransactionsOfCurrentCategoryInMonth);
             totalAmountForMonth.setText(totalAmountForMonthText);
+            totalAmountForMonth.setTextColor(ContextCompat.getColor(requireContext(), R.color.sum_lesser_than_zero));
             RelativeLayout.LayoutParams layoutParamsForTotalAmountForMonth = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             layoutParamsForTotalAmountForMonth.addRule(RelativeLayout.BELOW, separatorLine.getId());
             layoutParamsForTotalAmountForMonth.addRule(RelativeLayout.LEFT_OF, moneyIcon.getId());

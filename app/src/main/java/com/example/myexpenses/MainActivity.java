@@ -1,7 +1,6 @@
 package com.example.myexpenses;
 
 import android.content.Intent;
-import android.media.audiofx.BassBoost;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
@@ -15,7 +14,6 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.example.myexpenses.fragment.ChartsFragment;
-import com.example.myexpenses.fragment.LimitsFragment;
 import com.example.myexpenses.fragment.ListTransactionsFragment;
 import com.google.android.material.navigation.NavigationView;
 
@@ -29,7 +27,6 @@ public class MainActivity extends AppCompatActivity {
     public static int navItemIndex = 0;
 
     private static final String TAG_LIST_TRANSACTIONS = "list_transactions";
-    private static final String TAG_LIMITS = "limits";
     private static final String TAG_CHARTS = "charts";
     public static String CURRENT_TAG = TAG_LIST_TRANSACTIONS;
 
@@ -70,10 +67,6 @@ public class MainActivity extends AppCompatActivity {
                     CURRENT_TAG = TAG_CHARTS;
                     break;
                 case R.id.limits:
-//                    navItemIndex = 1;
-//                    CURRENT_TAG = TAG_LIMITS;
-//                    break;
-
                     startActivity(new Intent(MainActivity.this, LimitsActivity.class));
                     drawer.closeDrawers();
                     return true;
@@ -85,14 +78,14 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(new Intent(MainActivity.this, SettingsActivity.class));
                     drawer.closeDrawers();
                     return true;
+                case R.id.about:
+                    startActivity(new Intent(MainActivity.this, AboutActivity.class));
+                    drawer.closeDrawers();
+                    return true;
                 default:
                     navItemIndex = 0;
             }
-            if (menuItem.isChecked()) {
-                menuItem.setChecked(false);
-            } else {
-                menuItem.setChecked(true);
-            }
+            menuItem.setChecked(!menuItem.isChecked());
             menuItem.setChecked(true);
 
             loadFragment();
@@ -155,12 +148,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Fragment getFragment() {
         switch (navItemIndex) {
-            case 0:
-                return new ListTransactionsFragment();
             case 1:
                 return new ChartsFragment();
-            case 2:
-                return new LimitsFragment();
             default:
                 return new ListTransactionsFragment();
         }
@@ -188,5 +177,4 @@ public class MainActivity extends AppCompatActivity {
 
         super.onBackPressed();
     }
-
 }

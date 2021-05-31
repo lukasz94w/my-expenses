@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <group android:checkableBehavior="single"
-        android:id="@+id/menu_top">
+    <group
+        android:id="@+id/menu_top"
+        android:checkableBehavior="single">
         <item
             android:id="@+id/list_transactions"
             android:icon="@drawable/expense"
@@ -13,8 +14,9 @@
             android:title="@string/charts" />
     </group>
 
-    <group android:checkableBehavior="single"
-        android:id="@+id/menu_middle">
+    <group
+        android:id="@+id/menu_middle"
+        android:checkableBehavior="single">
         <item
             android:id="@+id/limits"
             android:icon="@drawable/limits"
@@ -26,24 +28,17 @@
 
     </group>
 
-    <group android:checkableBehavior="single"
-        android:id="@+id/menu_bottom">
+    <group
+        android:id="@+id/menu_bottom"
+        android:checkableBehavior="single">
         <item
             android:id="@+id/settings"
             android:icon="@drawable/settings"
             android:title="@string/settings_title" />
+        <item
+            android:id="@+id/about"
+            android:icon="@drawable/about"
+            android:title="@string/about" />
 
     </group>
-
-    <item android:title="Other">
-        <menu>
-            <item
-                android:id="@+id/nav_about_us"
-                android:title="about us" />
-            <item
-                android:id="@+id/nav_privacy_policy"
-                android:title="privacy policy" />
-        </menu>
-    </item>
-
 </menu>

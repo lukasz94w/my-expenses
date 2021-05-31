@@ -1,31 +1,25 @@
 package com.example.myexpenses;
 
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.PopupWindow;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.NavUtils;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentManager;
 
 import com.example.myexpenses.customValueFormatter.IntValueFormatter;
+import com.example.myexpenses.dialogFragment.EditLimitsDialog;
 import com.example.myexpenses.model.Transaction;
 import com.example.myexpenses.repository.TransactionRepository;
 import com.github.mikephil.charting.charts.BarChart;
@@ -35,27 +29,24 @@ import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.IntStream;
 
-public class LimitsActivity extends AppCompatActivity implements View.OnClickListener, View.OnTouchListener {
+public class LimitsActivity extends AppCompatActivity implements View.OnClickListener, EditLimitsDialog.EditLimitsDialogCommunicator {
 
-    //main window
+    private RelativeLayout relativeLayout;
     private TextView currentChosenMonthAndYear;
     private TextView dailyLimitSetAmount, dailyLimitLeftAmount;
     private TextView monthlyLimitSetAmount, monthlyLimitLeftAmount;
     private TextView expenseTotalSum;
     private TextView expenseMonthlyAverage;
     private BarChart monthlyBarChart;
-    //popup
-    private PopupWindow popupWindow;
-    private EditText setDailyLimit, setMonthlyLimit;
 
     private TransactionRepository transactionRepository;
     private SharedPreferences sharedPreferences;
@@ -65,39 +56,6 @@ public class LimitsActivity extends AppCompatActivity implements View.OnClickLis
     private Float dailyLimit;
     private Float monthlyLimit;
     private double sumOfDailyExpenses;
-    private double sumOfMonthlyExpenses;
-
-    private static class BarEntryHolder {
-        float xVal;
-        float yVal;
-
-        public BarEntryHolder(float xVal, float yVal) {
-            this.xVal = xVal;
-            this.yVal = yVal;
-        }
-
-        public float getxVal() {
-            return xVal;
-        }
-
-        public float getyVal() {
-            return yVal;
-        }
-    }
-
-    private class MyBarDataSet extends BarDataSet {
-        public MyBarDataSet(List<BarEntry> yVals, String label) {
-            super(yVals, label);
-        }
-
-        @Override
-        public int getColor(int index) {
-            if (getEntryForIndex(index).getY() < monthlyLimit)
-                return mColors.get(0);
-            else
-                return mColors.get(1);
-        }
-    }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
@@ -106,14 +64,11 @@ public class LimitsActivity extends AppCompatActivity implements View.OnClickLis
 
         setContentView(R.layout.activity_limits);
 
-
         Toolbar toolbar = findViewById(R.id.tool_bar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setTitle(getResources().getString(R.string.set_limits));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-
-        //onCreate
         transactionRepository = new TransactionRepository(this);
         sharedPreferences = getSharedPreferences("SharedPreferences", MODE_PRIVATE);
 
@@ -129,13 +84,9 @@ public class LimitsActivity extends AppCompatActivity implements View.OnClickLis
         dailyLimit = sharedPreferences.getFloat("Daily limit", 1000);
         monthlyLimit = sharedPreferences.getFloat("Monthly limit", 5000);
 
+        relativeLayout = findViewById(R.id.relativeLayoutLimitsActivity);
 
-        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-//        setContentView(R.layout.fragment_limits);
-
-        // Inflate the layout for this fragment
         ImageButton previousMonth = findViewById(R.id.previousMonth);
-
         previousMonth.setOnClickListener(this);
         currentChosenMonthAndYear = findViewById(R.id.currentChosenMonthAndYear);
         ImageButton nextMonth = findViewById(R.id.nextMonth);
@@ -153,34 +104,6 @@ public class LimitsActivity extends AppCompatActivity implements View.OnClickLis
         monthlyBarChart = findViewById(R.id.monthlyBarchart);
 
         updateView();
-    }
-
-    @SuppressLint("DefaultLocale")
-    @RequiresApi(api = Build.VERSION_CODES.N)
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_limits, container, false);
-        ImageButton previousMonth = view.findViewById(R.id.previousMonth);
-        previousMonth.setOnClickListener(this);
-        currentChosenMonthAndYear = view.findViewById(R.id.currentChosenMonthAndYear);
-        ImageButton nextMonth = view.findViewById(R.id.nextMonth);
-        nextMonth.setOnClickListener(this);
-
-        dailyLimitSetAmount = view.findViewById(R.id.dailyLimitSetAmount);
-        dailyLimitLeftAmount = view.findViewById(R.id.dailyLimitLeftAmount);
-        monthlyLimitSetAmount = view.findViewById(R.id.monthlyLimitSetAmount);
-        monthlyLimitLeftAmount = view.findViewById(R.id.monthlyLimitLeftAmount);
-        Button setDailyLimitButton = view.findViewById(R.id.setDailyLimitButton);
-        setDailyLimitButton.setOnClickListener(this);
-
-        expenseMonthlyAverage = view.findViewById(R.id.expenseMonthlyAverage);
-        expenseTotalSum = view.findViewById(R.id.expenseTotalSum);
-        monthlyBarChart = view.findViewById(R.id.monthlyBarchart);
-
-        updateView();
-
-        return view;
     }
 
     @SuppressLint({"DefaultLocale", "ClickableViewAccessibility"})
@@ -210,116 +133,48 @@ public class LimitsActivity extends AppCompatActivity implements View.OnClickLis
                 break;
             }
             case R.id.setDailyLimitButton: {
-                // inflate the layout of the popup window
-                LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-                //popupWindow
-                View popupView = inflater.inflate(R.layout.popup_change_limits, null);
 
-                int popupWidth = 565;
-                int popupHeight = 548;
-                popupWindow = new PopupWindow(popupView, popupWidth, popupHeight, true);
-                popupWindow.showAtLocation(popupView, Gravity.CENTER, 0, -125);
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                EditLimitsDialog editLimitsDialog = new EditLimitsDialog();
+                //passing data to dialog
+                Bundle data = new Bundle();
+                data.putFloat("dailyLimit", dailyLimit);
+                data.putFloat("monthlyLimit", monthlyLimit);
+                editLimitsDialog.setArguments(data);
 
-                //if the touch is outside the bounds the touch is consumed and not passed to the popupWindow so it is not dismissed
-                popupWindow.setTouchInterceptor((v12, event) -> {
-                    if (event.getX() < 0 || event.getX() > popupWidth) return true;
-                    if (event.getY() < 0 || event.getY() > popupHeight) return true;
-
-                    return false;
-                });
-
-                //dim background when popup shows
-                View container = (View) popupWindow.getContentView().getParent();
-                WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-                WindowManager.LayoutParams layoutParams = (WindowManager.LayoutParams) container.getLayoutParams();
-                layoutParams.flags = WindowManager.LayoutParams.FLAG_DIM_BEHIND;
-                layoutParams.dimAmount = 0.6f;
-                windowManager.updateViewLayout(container, layoutParams);
-
-                Toolbar toolbar = popupView.findViewById(R.id.tool_bar);
-                ImageButton toolbarClose = popupView.findViewById(R.id.toolbarClose);
-                toolbarClose.setOnClickListener(this);
-
-                TextView toolbarText = popupView.findViewById(R.id.toolbarText);
-                toolbarText.setText("Set limits");
-
-                setDailyLimit = popupView.findViewById(R.id.setDailyLimit);
-                setDailyLimit.setText(String.format("%.2f", dailyLimit));
-                setDailyLimit.setOnTouchListener(this);
-
-                setMonthlyLimit = popupView.findViewById(R.id.setMonthlyLimit);
-                setMonthlyLimit.setText(String.format("%.2f", monthlyLimit));
-                setMonthlyLimit.setOnTouchListener(this);
-
-                Button saveNewLimitsButton = popupView.findViewById(R.id.saveNewLimitsButton);
-                saveNewLimitsButton.setOnClickListener(this);
-
-                break;
-            }
-
-            case R.id.saveNewLimitsButton: {
-
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-
-                //check if amount is empty if so we set it as zero
-                try {
-                    dailyLimit = Float.parseFloat(String.valueOf(setDailyLimit.getText()));
-                } catch (NumberFormatException e) {
-                    dailyLimit = 0f;
-                }
-
-                //check if amount is empty if so we set it as zero
-                try {
-                    monthlyLimit = Float.parseFloat(String.valueOf(setMonthlyLimit.getText()));
-                } catch (NumberFormatException e) {
-                    monthlyLimit = 0f;
-                }
-
-                editor.putFloat("Daily limit", dailyLimit);
-                editor.putFloat("Monthly limit", monthlyLimit);
-                editor.apply();
-
-                updateView();
-//
-//                Snackbar snackbar = Snackbar.make(getView(), "New limits set", Snackbar.LENGTH_LONG);
-//                snackbar.show();
-
-                popupWindow.dismiss();
-                break;
-            }
-
-            case R.id.toolbarClose: {
-                Float valueOfSetDailyLimit;
-                try {
-                    valueOfSetDailyLimit = Float.valueOf(setDailyLimit.getText().toString());
-                } catch (NumberFormatException e) {
-                    valueOfSetDailyLimit = 0f;
-                }
-
-                Float valueOfSetMonthlyLimit;
-                try {
-                    valueOfSetMonthlyLimit = Float.valueOf(setMonthlyLimit.getText().toString());
-                } catch (NumberFormatException e) {
-                    valueOfSetMonthlyLimit = 0f;
-                }
-
-                if (!valueOfSetDailyLimit.equals(dailyLimit) || !valueOfSetMonthlyLimit.equals(monthlyLimit)) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                    builder.setCancelable(false);
-                    builder.setMessage(R.string.unsaved_data_message);
-                    builder.setPositiveButton(R.string.limit_yes_button, (dialog, which) -> popupWindow.dismiss());
-                    builder.setNegativeButton(R.string.limit_no_button, (dialog, which) -> {
-                    });
-                    AlertDialog alertDialog = builder.create();
-                    alertDialog.show();
-                } else {
-                    popupWindow.dismiss();
-                }
+                editLimitsDialog.show(fragmentManager, "edit limits fragment");
                 break;
             }
 
             default:
                 break;
+        }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    @Override
+    public void retrieveData(Bundle data) {
+        float dailyLimitFromDialog = data.getFloat("dailyLimit");
+        float monthlyLimitFromDialog = data.getFloat("monthlyLimit");
+
+        if (dailyLimitFromDialog != dailyLimit || monthlyLimitFromDialog != monthlyLimit) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            if (dailyLimitFromDialog != dailyLimit) {
+                dailyLimit = dailyLimitFromDialog;
+                editor.putFloat("Daily limit", dailyLimit);
+            }
+            if (monthlyLimitFromDialog != monthlyLimit) {
+                monthlyLimit = monthlyLimitFromDialog;
+                editor.putFloat("Monthly limit", monthlyLimit);
+            }
+            editor.apply();
+            updateView();
+            Snackbar snackbar = Snackbar.make(relativeLayout, "New limits set", Snackbar.LENGTH_LONG);
+            snackbar.show();
+        }
+        else {
+            Snackbar snackbar = Snackbar.make(relativeLayout, "Limits hasn't changed", Snackbar.LENGTH_LONG);
+            snackbar.show();
         }
     }
 
@@ -335,7 +190,7 @@ public class LimitsActivity extends AppCompatActivity implements View.OnClickLis
         List<Transaction> monthlyExpenses = transactionRepository.findExpensesInMonth(currentChosenMonth, currentChosenYear);
         Collections.sort(monthlyExpenses); //dates must be in order
 
-        sumOfMonthlyExpenses = monthlyExpenses.stream()
+        double sumOfMonthlyExpenses = monthlyExpenses.stream()
                 .mapToDouble(o -> Math.abs(o.getAmount()))
                 .sum();
 
@@ -344,18 +199,18 @@ public class LimitsActivity extends AppCompatActivity implements View.OnClickLis
 
         if (dailyLimit - sumOfDailyExpenses < 0) {
             dailyLimitLeftAmount.setText(String.format("%.2f", dailyLimit - sumOfDailyExpenses));
-            dailyLimitLeftAmount.setTextColor(ContextCompat.getColor(Objects.requireNonNull(this), R.color.limit_reached));
+            dailyLimitLeftAmount.setTextColor(ContextCompat.getColor(this, R.color.limit_reached));
         } else {
             dailyLimitLeftAmount.setText(String.format("+%.2f", dailyLimit - sumOfDailyExpenses));
-            dailyLimitLeftAmount.setTextColor(ContextCompat.getColor(Objects.requireNonNull(this), R.color.sum_greater_than_zero));
+            dailyLimitLeftAmount.setTextColor(ContextCompat.getColor(this, R.color.sum_greater_than_zero));
         }
 
         if (monthlyLimit - sumOfMonthlyExpenses < 0) {
             monthlyLimitLeftAmount.setText(String.format("%.2f", monthlyLimit - sumOfMonthlyExpenses));
-            monthlyLimitLeftAmount.setTextColor(ContextCompat.getColor(Objects.requireNonNull(this), R.color.limit_reached));
+            monthlyLimitLeftAmount.setTextColor(ContextCompat.getColor(this, R.color.limit_reached));
         } else {
             monthlyLimitLeftAmount.setText(String.format("+%.2f", monthlyLimit - sumOfMonthlyExpenses));
-            monthlyLimitLeftAmount.setTextColor(ContextCompat.getColor(Objects.requireNonNull(this), R.color.sum_greater_than_zero));
+            monthlyLimitLeftAmount.setTextColor(ContextCompat.getColor(this, R.color.sum_greater_than_zero));
         }
 
         expenseTotalSum.setText(String.format("-%.2f", sumOfMonthlyExpenses));
@@ -463,35 +318,36 @@ public class LimitsActivity extends AppCompatActivity implements View.OnClickLis
         monthlyBarChart.invalidate();
     }
 
-    @Override
-    public boolean onTouch(View v, MotionEvent event) {
-        switch (v.getId()) {
-            case R.id.setDailyLimit: {
-                final int DRAWABLE_RIGHT = 2;
+    private static class BarEntryHolder {
+        float xVal;
+        float yVal;
 
-                if (event.getAction() == MotionEvent.ACTION_UP) {
-                    if (event.getRawX() >= (setDailyLimit.getRight() - setDailyLimit.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width())) {
-                        setDailyLimit.setText("");
-                        v.performClick();
-                        return false;
-                    }
-                }
-                break;
-            }
-            case R.id.setMonthlyLimit: {
-                final int DRAWABLE_RIGHT = 2;
-
-                if (event.getAction() == MotionEvent.ACTION_UP) {
-                    if (event.getRawX() >= (setMonthlyLimit.getRight() - setMonthlyLimit.getCompoundDrawables()[DRAWABLE_RIGHT].getBounds().width())) {
-                        setMonthlyLimit.setText("");
-                        v.performClick();
-                        return false;
-                    }
-                }
-            }
-            break;
+        public BarEntryHolder(float xVal, float yVal) {
+            this.xVal = xVal;
+            this.yVal = yVal;
         }
-        return false;
+
+        public float getxVal() {
+            return xVal;
+        }
+
+        public float getyVal() {
+            return yVal;
+        }
+    }
+
+    private class MyBarDataSet extends BarDataSet {
+        public MyBarDataSet(List<BarEntry> yVals, String label) {
+            super(yVals, label);
+        }
+
+        @Override
+        public int getColor(int index) {
+            if (getEntryForIndex(index).getY() < monthlyLimit)
+                return mColors.get(0);
+            else
+                return mColors.get(1);
+        }
     }
 
     public String convertMonthToString(int month, int year) {
@@ -504,5 +360,11 @@ public class LimitsActivity extends AppCompatActivity implements View.OnClickLis
         }
 
         return MM + "/" + yyyy;
+    }
+
+    //prevent left checked icon on navigation drawer and also clear filters f.e.
+    @Override
+    public void onBackPressed() {
+        NavUtils.navigateUpFromSameTask(this);
     }
 }

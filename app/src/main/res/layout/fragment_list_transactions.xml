@@ -1,114 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".fragment.ListTransactionsFragment">
 
-    <RelativeLayout
-        android:id="@+id/navigationBar"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:clickable="false"
-        android:background="@color/ColorPrimaryBright"
-        android:layout_below="@id/filterBar">
-
-        <ImageButton
-            android:id="@+id/previousMonth"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_gravity="center_vertical"
-            android:layout_marginStart="5dp"
-            android:clickable="true"
-            android:background="@android:color/transparent"
-            android:src="@drawable/left_arrow"
-            android:focusable="true" />
-
-        <TextView
-            android:id="@+id/currentChosenMonthAndYear"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_toEndOf="@id/previousMonth"
-            android:textSize="18sp" />
-
-        <ImageButton
-            android:id="@+id/nextMonth"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_gravity="center_vertical"
-            android:layout_toEndOf="@id/currentChosenMonthAndYear"
-            android:background="@android:color/transparent"
-            android:clickable="true"
-            android:src="@drawable/right_arrow"
-            android:focusable="true" />
-
-        <ImageView
-            android:id="@+id/moneyIcon"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_alignParentEnd="true"
-            android:layout_centerInParent="true"
-            android:layout_gravity="center"
-            android:layout_marginEnd="5dp"
-            android:src="@drawable/money" />
-
-        <TextView
-            android:id="@+id/monthlyTransactionSum"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_toStartOf="@id/moneyIcon"
-            android:gravity="center_vertical"
-            android:textSize="22sp"
-            android:textStyle="bold" />
-
-    </RelativeLayout>
-
-    <RelativeLayout
-        android:id="@+id/filterBar"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:clickable="false"
-        android:background="@color/ColorPrimary">
-
-        <Spinner
-            android:id="@+id/filterTransactionCategory"
-            android:popupBackground="@color/ColorPrimary"
-            android:layout_margin="6dp"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_alignParentStart="true"
-            android:backgroundTint="@color/white"
-            android:textAlignment="textEnd" />
-
-        <ImageView
-            android:id="@+id/sortTransactions"
-            android:layout_width="25dp"
-            android:layout_height="25dp"
-            android:layout_alignParentEnd="true"
-            android:layout_centerInParent="true"
-            android:layout_gravity="center"
-            android:layout_marginEnd="10dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:src="@drawable/menu_sort" />
-
-    </RelativeLayout>
-
-    <ListView
-        android:id="@android:id/list"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/navigationBar" />
-
-    <TextView
-        android:id="@android:id/empty"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:text="No records found"
-        android:visibility="gone"/>
+    <include layout="@layout/list_transactions_main"/>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/addNewTransaction"
@@ -117,13 +15,12 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:layout_gravity="end|bottom"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="29dp"
+        android:layout_margin="16dp"
+        android:clickable="true"
         android:src="@drawable/add_transaction"
-        android:padding="0dp"
-        android:scaleType="fitXY"
-        app:backgroundTint="@android:color/transparent"
-        app:borderWidth="0dp"
-        app:useCompatPadding="true" />
+        android:backgroundTint="@color/ColorPrimary"
+        app:fabCustomSize="50dp"
+        app:rippleColor="@color/ColorPrimaryBright"
+        android:focusable="true" />
 
-</RelativeLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
