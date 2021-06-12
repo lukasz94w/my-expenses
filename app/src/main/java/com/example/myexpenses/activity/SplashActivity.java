@@ -1,10 +1,12 @@
-package com.example.myexpenses;
+package com.example.myexpenses.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NavUtils;
 
 import android.content.Intent;
 import android.os.Bundle;
+
+import com.example.myexpenses.MainActivity;
 
 public class SplashActivity extends AppCompatActivity {
 

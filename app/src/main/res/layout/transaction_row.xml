@@ -9,6 +9,7 @@
         android:id="@+id/imageTransaction"
         android:layout_width="45dp"
         android:layout_height="45dp"
+        android:layout_marginStart="2dp"
         android:layout_alignParentStart="true" />
 
     <TextView

@@ -13,6 +13,10 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.example.myexpenses.activity.AboutActivity;
+import com.example.myexpenses.activity.ExportActivity;
+import com.example.myexpenses.activity.LimitsActivity;
+import com.example.myexpenses.activity.SettingsActivity;
 import com.example.myexpenses.fragment.ChartsFragment;
 import com.example.myexpenses.fragment.ListTransactionsFragment;
 import com.google.android.material.navigation.NavigationView;

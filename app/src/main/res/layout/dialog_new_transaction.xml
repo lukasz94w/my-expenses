@@ -31,7 +31,6 @@
         android:textColor="@color/BrownGrey"
         android:paddingLeft="10dp"
         android:hint="Amount"
-        android:maxLength="5"
         android:textColorHint="@color/BrownGreyBrighter"
         android:inputType="numberDecimal"
         android:layout_marginLeft="10dp"

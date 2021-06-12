@@ -6,6 +6,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.InputFilter;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -28,6 +29,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
 import com.example.myexpenses.R;
+import com.example.myexpenses.inputFilter.DecimalDigitsInputFilter;
 import com.example.myexpenses.model.Transaction;
 import com.example.myexpenses.repository.TransactionRepository;
 
@@ -36,6 +38,10 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
+
+import static com.example.myexpenses.other.CurrencyConverter.getValueInCurrency;
+import static com.example.myexpenses.other.CurrencyConverter.getValueInSubUnit;
 
 public class ModifyTransactionDialog extends DialogFragment implements View.OnClickListener, AdapterView.OnItemSelectedListener, RadioGroup.OnCheckedChangeListener, View.OnTouchListener {
 
@@ -47,8 +53,8 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
     private Integer currentChosenMonth;
     private Integer currentChosenYear;
 
-    private float dailyLimit;
-    private float monthlyLimit;
+    private int dailyLimit;
+    private int monthlyLimit;
 
     private Button chooseTransactionDate;
     private Button chooseTodayTomorrow;
@@ -91,8 +97,8 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
         actualYear = getArguments().getInt("actualYear");
         currentChosenMonth = getArguments().getInt("currentChosenMonth");
         currentChosenYear = getArguments().getInt("currentChosenYear");
-        dailyLimit = getArguments().getFloat("dailyLimit");
-        monthlyLimit = getArguments().getFloat("monthlyLimit");
+        dailyLimit = getArguments().getInt("dailyLimit");
+        monthlyLimit = getArguments().getInt("monthlyLimit");
         actualDate = new Date();
         actualDate.setTime(getArguments().getLong("actualDate"));
     }
@@ -155,8 +161,8 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
         transactionCategoryImage = view.findViewById(R.id.transactionCategoryImage);
 
         chooseTransactionAmount = view.findViewById(R.id.chooseTransactionAmount);
-        double primaryValueOfUpdatedTransaction = selectedTransaction.getAmount();
-        chooseTransactionAmount.setText(String.format("%.2f", Math.abs(primaryValueOfUpdatedTransaction)));
+        chooseTransactionAmount.setText(String.format(Locale.US, "%.2f", Math.abs(getValueInCurrency(selectedTransaction.getAmount()))));
+        chooseTransactionAmount.setFilters(new InputFilter[]{new DecimalDigitsInputFilter(6, 2, 100000)});
         chooseTransactionAmount.setOnTouchListener(this);
         chooseTransactionAmount.requestFocus();
 
@@ -183,11 +189,13 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
                 String transactionName = chooseTransactionName.getText().toString();
                 RadioButton checkedRadioButton = getView().findViewById(chooseTransactionType.getCheckedRadioButtonId());
                 String categoryName = checkedRadioButton.getText().toString();
-                float transactionAmount;
+
+                int transactionAmount;
                 try {
-                    transactionAmount = Float.parseFloat(chooseTransactionAmount.getText().toString());
+                    float transactionAmountAsFloat = Float.parseFloat(chooseTransactionAmount.getText().toString());
+                    transactionAmount = getValueInSubUnit(transactionAmountAsFloat);
                 } catch (NumberFormatException e) {
-                    transactionAmount = 0f;
+                    transactionAmount = 0;
                 }
                 int transactionType = 0;
                 if (categoryName.equals("Expense")) {
@@ -268,7 +276,7 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
                 builder.setMessage(R.string.delete_transaction_message);
                 builder.setPositiveButton(R.string.delete_transaction_yes_button, (dialog, which) -> {
                     transactionRepository.deleteTransaction(selectedTransaction.getId());
-                    modifyTransactionDialogCommunicator.ModifyTransactionCallback(TRANSACTION_DELETED);
+                    modifyTransactionDialogCommunicator.retrieveDataFromModifyTransactionDialog(TRANSACTION_DELETED);
                     dismiss();
                 });
                 builder.setNegativeButton(R.string.delete_transaction_no_button, (dialog, which) -> {
@@ -289,9 +297,10 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
                     transactionName = chooseTransactionCategory.getSelectedItem().toString();
                 }
 
-                float transactionAmount;
+                int transactionAmount;
                 try {
-                    transactionAmount = Float.parseFloat(chooseTransactionAmount.getText().toString());
+                    float transactionAmountAsFloat = Float.parseFloat(chooseTransactionAmount.getText().toString());
+                    transactionAmount = getValueInSubUnit(transactionAmountAsFloat);
                     if (transactionAmount == 0) {
                         throw new NumberFormatException();
                     }
@@ -354,7 +363,7 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
                         }
                         builder.setPositiveButton(R.string.limit_yes_button, (dialog, which) -> {
                             transactionRepository.updateTransaction(transactionToSave);
-                            modifyTransactionDialogCommunicator.ModifyTransactionCallback(TRANSACTION_UPDATED);
+                            modifyTransactionDialogCommunicator.retrieveDataFromModifyTransactionDialog(TRANSACTION_UPDATED);
                             dismiss();
                         });
 
@@ -367,7 +376,7 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
                     }
                 }
                 transactionRepository.updateTransaction(transactionToSave);
-                modifyTransactionDialogCommunicator.ModifyTransactionCallback(TRANSACTION_UPDATED);
+                modifyTransactionDialogCommunicator.retrieveDataFromModifyTransactionDialog(TRANSACTION_UPDATED);
                 dismiss();
                 break;
             }
@@ -382,9 +391,10 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
                     transactionName = chooseTransactionCategory.getSelectedItem().toString();
                 }
 
-                float transactionAmount;
+                int transactionAmount;
                 try {
-                    transactionAmount = Float.parseFloat(chooseTransactionAmount.getText().toString());
+                    float transactionAmountAsFloat = Float.parseFloat(chooseTransactionAmount.getText().toString());
+                    transactionAmount = getValueInSubUnit(transactionAmountAsFloat);
                     if (transactionAmount == 0) {
                         throw new NumberFormatException();
                     }
@@ -447,7 +457,7 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
                             transactionRepository.create(transactionToSave);
                             //check if we need to actualise current seen list of transactions and total sum
                             if ((monthOfNewTransaction == currentChosenMonth) && (yearOfNewTransaction == currentChosenYear)) {
-                                modifyTransactionDialogCommunicator.ModifyTransactionCallback(TRANSACTION_ADDED_NEEDED_UPDATE_LIST);
+                                modifyTransactionDialogCommunicator.retrieveDataFromModifyTransactionDialog(TRANSACTION_ADDED_NEEDED_UPDATE_LIST);
                             }
                             dismiss();
                         });
@@ -462,9 +472,9 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
                 transactionRepository.create(transactionToSave);
                 //check if we need to actualise current seen list of transactions and total sum
                 if ((monthOfNewTransaction == currentChosenMonth) && (yearOfNewTransaction == currentChosenYear)) {
-                    modifyTransactionDialogCommunicator.ModifyTransactionCallback(TRANSACTION_ADDED_NEEDED_UPDATE_LIST);
+                    modifyTransactionDialogCommunicator.retrieveDataFromModifyTransactionDialog(TRANSACTION_ADDED_NEEDED_UPDATE_LIST);
                 }
-                modifyTransactionDialogCommunicator.ModifyTransactionCallback(TRANSACTION_ADDED_NO_NEED_TO_UPDATE_LIST);
+                modifyTransactionDialogCommunicator.retrieveDataFromModifyTransactionDialog(TRANSACTION_ADDED_NO_NEED_TO_UPDATE_LIST);
                 dismiss();
                 break;
             }
@@ -507,7 +517,7 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
     }
 
     public interface ModifyTransactionDialogCommunicator {
-        void ModifyTransactionCallback(int typeOfOperation);
+        void retrieveDataFromModifyTransactionDialog(int typeOfOperation);
 
     }
 
@@ -551,11 +561,13 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
                 String transactionName = chooseTransactionName.getText().toString();
                 RadioButton checkedRadioButton = getView().findViewById(chooseTransactionType.getCheckedRadioButtonId());
                 String categoryName = checkedRadioButton.getText().toString();
-                float transactionAmount;
+
+                int transactionAmount;
                 try {
-                    transactionAmount = Float.parseFloat(chooseTransactionAmount.getText().toString());
+                    float transactionAmountAsFloat = Float.parseFloat(chooseTransactionAmount.getText().toString());
+                    transactionAmount = getValueInSubUnit(transactionAmountAsFloat);
                 } catch (NumberFormatException e) {
-                    transactionAmount = 0f;
+                    transactionAmount = 0;
                 }
                 int transactionType = 0;
                 if (categoryName.equals("Expense")) {

@@ -15,7 +15,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class TransactionRepository extends SQLiteOpenHelper {
-    private static final int DATABASE_VERSION = 16;
+    private static final int DATABASE_VERSION = 17;
     private static final String DATABASE_NAME = "transactions_database";
     private static final String TABLE_TRANSACTION = "transactions";
     private static final String TRANSACTION_ID = "id";
@@ -33,7 +33,7 @@ public class TransactionRepository extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         String CREATE_TABLE_TRANSACTION = "CREATE TABLE " + TABLE_TRANSACTION + " ("
                 + TRANSACTION_ID + " INTEGER PRIMARY KEY, " + TRANSACTION_TYPE + " INTEGER, " + TRANSACTION_NAME + " TEXT, "
-                + TRANSACTION_AMOUNT + " REAL, " + TRANSACTION_CATEGORY + " TEXT, " + TRANSACTION_DATE + " INTEGER" + ")";
+                + TRANSACTION_AMOUNT + " INTEGER, " + TRANSACTION_CATEGORY + " TEXT, " + TRANSACTION_DATE + " INTEGER" + ")";
         db.execSQL(CREATE_TABLE_TRANSACTION);
     }
 
@@ -57,7 +57,13 @@ public class TransactionRepository extends SQLiteOpenHelper {
         db.close();
     }
 
-    public Cursor raw(int dayDateFrom, int monthDateFrom, int yearDateFrom, int dayDateTo, int monthDateTo, int yearDateTo, int transactionType, String transactionCategory) {
+    public Cursor raw() {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String sortOrder = TRANSACTION_DATE + " ASC";
+        return db.query(TABLE_TRANSACTION, null, null, null, null, null, sortOrder, null);
+    }
+
+    public Cursor rawWithFilter(int dayDateFrom, int monthDateFrom, int yearDateFrom, int dayDateTo, int monthDateTo, int yearDateTo, int transactionType, String transactionCategory) {
         List<String> queryValues = new ArrayList<>();
         String queryParams = "";
 
@@ -97,8 +103,10 @@ public class TransactionRepository extends SQLiteOpenHelper {
         String[] finalValues = new String[queryValues.size()];
         queryValues.toArray(finalValues);
 
+        String sortOrder = TRANSACTION_DATE + " ASC";
+
         SQLiteDatabase db = this.getReadableDatabase();
-        return db.query(TABLE_TRANSACTION, null, queryParams, finalValues, null, null, null, null);
+        return db.query(TABLE_TRANSACTION, null, queryParams, finalValues, null, null, sortOrder, null);
     }
 
     public List<Transaction> findAll() {
@@ -114,7 +122,7 @@ public class TransactionRepository extends SQLiteOpenHelper {
                 transaction.setId(cursor.getInt(0));
                 transaction.setType(cursor.getInt(1));
                 transaction.setName(cursor.getString(2));
-                transaction.setAmount(Float.parseFloat(cursor.getString(3)));
+                transaction.setAmount(cursor.getInt(3));
                 transaction.setCategory(cursor.getString(4));
                 transaction.setDate(new Date(cursor.getLong(5)));
 
@@ -142,7 +150,7 @@ public class TransactionRepository extends SQLiteOpenHelper {
                 transaction.setId(cursor.getInt(0));
                 transaction.setType(cursor.getInt(1));
                 transaction.setName(cursor.getString(2));
-                transaction.setAmount(Float.parseFloat(cursor.getString(3)));
+                transaction.setAmount(cursor.getInt(3));
                 transaction.setCategory(cursor.getString(4));
                 transaction.setDate(new Date(cursor.getLong(5)));
 
@@ -227,7 +235,7 @@ public class TransactionRepository extends SQLiteOpenHelper {
                 transaction.setId(cursor.getInt(0));
                 transaction.setType(cursor.getInt(1));
                 transaction.setName(cursor.getString(2));
-                transaction.setAmount(Float.parseFloat(cursor.getString(3)));
+                transaction.setAmount(cursor.getInt(3));
                 transaction.setCategory(cursor.getString(4));
                 transaction.setDate(new Date(cursor.getLong(5)));
 
@@ -243,7 +251,8 @@ public class TransactionRepository extends SQLiteOpenHelper {
         Long dateTo = monthBoundaries.get(1);
         List<Transaction> expensesList = new LinkedList<>();
 
-        String selectQuery = "SELECT * FROM " + TABLE_TRANSACTION + " WHERE " + TRANSACTION_DATE + " >= " + dateFrom + " AND " + TRANSACTION_DATE + " <= " + dateTo + " AND type = 1";
+        String selectQuery = "SELECT * FROM " + TABLE_TRANSACTION + " WHERE " + TRANSACTION_DATE +
+                " >= " + dateFrom + " AND " + TRANSACTION_DATE + " <= " + dateTo + " AND type = 1";
 
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(selectQuery, null);
@@ -254,7 +263,7 @@ public class TransactionRepository extends SQLiteOpenHelper {
                 transaction.setId(cursor.getInt(0));
                 transaction.setType(cursor.getInt(1));
                 transaction.setName(cursor.getString(2));
-                transaction.setAmount(Float.parseFloat(cursor.getString(3)));
+                transaction.setAmount(cursor.getInt(3));
                 transaction.setCategory(cursor.getString(4));
                 transaction.setDate(new Date(cursor.getLong(5)));
 
@@ -281,7 +290,7 @@ public class TransactionRepository extends SQLiteOpenHelper {
                 transaction.setId(cursor.getInt(0));
                 transaction.setType(cursor.getInt(1));
                 transaction.setName(cursor.getString(2));
-                transaction.setAmount(Float.parseFloat(cursor.getString(3)));
+                transaction.setAmount(cursor.getInt(3));
                 transaction.setCategory(cursor.getString(4));
                 transaction.setDate(new Date(cursor.getLong(5)));
 
@@ -338,7 +347,7 @@ public class TransactionRepository extends SQLiteOpenHelper {
                 transaction.setId(cursor.getInt(0));
                 transaction.setType(cursor.getInt(1));
                 transaction.setName(cursor.getString(2));
-                transaction.setAmount(Float.parseFloat(cursor.getString(3)));
+                transaction.setAmount(cursor.getInt(3));
                 transaction.setCategory(cursor.getString(4));
                 transaction.setDate(new Date(cursor.getLong(5)));
 

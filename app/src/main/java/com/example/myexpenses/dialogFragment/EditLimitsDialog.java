@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
+import android.text.InputFilter;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -20,11 +21,17 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.DialogFragment;
 
 import com.example.myexpenses.R;
+import com.example.myexpenses.inputFilter.DecimalDigitsInputFilter;
+
+import java.util.Locale;
+
+import static com.example.myexpenses.other.CurrencyConverter.getValueInCurrency;
+import static com.example.myexpenses.other.CurrencyConverter.getValueInSubUnit;
 
 public class EditLimitsDialog extends DialogFragment implements View.OnClickListener, View.OnTouchListener {
 
-    private float dailyLimit;
-    private float monthlyLimit;
+    private int dailyLimit;
+    private int monthlyLimit;
     private EditText setDailyLimit;
     private EditText setMonthlyLimit;
     private EditLimitsDialogCommunicator editLimitsDialogCommunicator;
@@ -43,8 +50,8 @@ public class EditLimitsDialog extends DialogFragment implements View.OnClickList
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        dailyLimit = getArguments().getFloat("dailyLimit");
-        monthlyLimit = getArguments().getFloat("monthlyLimit");
+        dailyLimit = getArguments().getInt("dailyLimit");
+        monthlyLimit = getArguments().getInt("monthlyLimit");
     }
 
     @Nullable
@@ -55,7 +62,7 @@ public class EditLimitsDialog extends DialogFragment implements View.OnClickList
         return inflater.inflate(R.layout.dialog_edit_limits, container);
     }
 
-    @SuppressLint({"DefaultLocale", "ClickableViewAccessibility"})
+    @SuppressLint({"ClickableViewAccessibility"})
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -68,11 +75,13 @@ public class EditLimitsDialog extends DialogFragment implements View.OnClickList
         toolbarText.setText("Set limits");
 
         setDailyLimit = view.findViewById(R.id.setDailyLimit);
-        setDailyLimit.setText(String.format("%.2f", dailyLimit));
+        setDailyLimit.setText(String.format(Locale.US, "%.2f", getValueInCurrency(dailyLimit)));
+        setDailyLimit.setFilters(new InputFilter[] {new DecimalDigitsInputFilter(5,2, 10000)});
         setDailyLimit.setOnTouchListener(this);
 
         setMonthlyLimit = view.findViewById(R.id.setMonthlyLimit);
-        setMonthlyLimit.setText(String.format("%.2f", monthlyLimit));
+        setMonthlyLimit.setFilters(new InputFilter[] {new DecimalDigitsInputFilter(6,2, 100000)});
+        setMonthlyLimit.setText(String.format(Locale.US, "%.2f", getValueInCurrency(monthlyLimit)));
         setMonthlyLimit.setOnTouchListener(this);
 
         Button saveNewLimits = view.findViewById(R.id.saveNewLimits);
@@ -80,28 +89,28 @@ public class EditLimitsDialog extends DialogFragment implements View.OnClickList
     }
 
     public interface EditLimitsDialogCommunicator {
-        void retrieveData(final Bundle data);
+        void retrieveDataFromEditLimitsDialog(final Bundle data);
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.toolbarClose: {
-                Float valueOfSetDailyLimit;
+                int valueOfSetDailyLimit;
                 try {
-                    valueOfSetDailyLimit = Float.valueOf(setDailyLimit.getText().toString());
+                    valueOfSetDailyLimit = getValueInSubUnit(Float.parseFloat(setDailyLimit.getText().toString()));
                 } catch (NumberFormatException e) {
-                    valueOfSetDailyLimit = 0f;
+                    valueOfSetDailyLimit = 0;
                 }
 
-                Float valueOfSetMonthlyLimit;
+                int valueOfSetMonthlyLimit;
                 try {
-                    valueOfSetMonthlyLimit = Float.valueOf(setMonthlyLimit.getText().toString());
+                    valueOfSetMonthlyLimit = getValueInSubUnit(Float.parseFloat(setMonthlyLimit.getText().toString()));
                 } catch (NumberFormatException e) {
-                    valueOfSetMonthlyLimit = 0f;
+                    valueOfSetMonthlyLimit = 0;
                 }
 
-                if (!valueOfSetDailyLimit.equals(dailyLimit) || !valueOfSetMonthlyLimit.equals(monthlyLimit)) {
+                if (!(valueOfSetDailyLimit == dailyLimit) || !(valueOfSetMonthlyLimit == monthlyLimit)) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
                     builder.setCancelable(false);
                     builder.setMessage(R.string.unsaved_data_message);
@@ -121,20 +130,20 @@ public class EditLimitsDialog extends DialogFragment implements View.OnClickList
 
                 //check if amount is empty if so we set it as zero
                 try {
-                    dailyLimit = Float.parseFloat(String.valueOf(setDailyLimit.getText()));
+                    dailyLimit = getValueInSubUnit(Float.parseFloat(setDailyLimit.getText().toString()));
                 } catch (NumberFormatException e) {
-                    dailyLimit = 0f;
+                    dailyLimit = 0;
                 }
                 //check if amount is empty if so we set it as zero
                 try {
-                    monthlyLimit = Float.parseFloat(String.valueOf(setMonthlyLimit.getText()));
+                    monthlyLimit = getValueInSubUnit(Float.parseFloat(setMonthlyLimit.getText().toString()));
                 } catch (NumberFormatException e) {
-                    monthlyLimit = 0f;
+                    monthlyLimit = 0;
                 }
 
-                bundle.putFloat("dailyLimit", dailyLimit);
-                bundle.putFloat("monthlyLimit", monthlyLimit);
-                editLimitsDialogCommunicator.retrieveData(bundle);
+                bundle.putInt("dailyLimit", dailyLimit);
+                bundle.putInt("monthlyLimit", monthlyLimit);
+                editLimitsDialogCommunicator.retrieveDataFromEditLimitsDialog(bundle);
                 dismiss();
 
                 break;
@@ -150,21 +159,21 @@ public class EditLimitsDialog extends DialogFragment implements View.OnClickList
         return new Dialog(getActivity(), getTheme()) {
             @Override
             public void onBackPressed() {
-                Float valueOfSetDailyLimit;
+                int valueOfSetDailyLimit;
                 try {
-                    valueOfSetDailyLimit = Float.valueOf(setDailyLimit.getText().toString());
+                    valueOfSetDailyLimit = getValueInSubUnit(Float.parseFloat(setDailyLimit.getText().toString()));
                 } catch (NumberFormatException e) {
-                    valueOfSetDailyLimit = 0f;
+                    valueOfSetDailyLimit = 0;
                 }
 
-                Float valueOfSetMonthlyLimit;
+                int valueOfSetMonthlyLimit;
                 try {
-                    valueOfSetMonthlyLimit = Float.valueOf(setMonthlyLimit.getText().toString());
+                    valueOfSetMonthlyLimit = getValueInSubUnit(Float.parseFloat(setMonthlyLimit.getText().toString()));
                 } catch (NumberFormatException e) {
-                    valueOfSetMonthlyLimit = 0f;
+                    valueOfSetMonthlyLimit = 0;
                 }
 
-                if (!valueOfSetDailyLimit.equals(dailyLimit) || !valueOfSetMonthlyLimit.equals(monthlyLimit)) {
+                if (!(valueOfSetDailyLimit == dailyLimit) || !(valueOfSetMonthlyLimit == monthlyLimit)) {
                     AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
                     builder.setCancelable(false);
                     builder.setMessage(R.string.unsaved_data_message);

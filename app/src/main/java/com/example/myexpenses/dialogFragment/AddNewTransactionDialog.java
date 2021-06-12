@@ -5,11 +5,12 @@ import android.app.Dialog;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.InputFilter;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -27,6 +28,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
+import com.example.myexpenses.inputFilter.DecimalDigitsInputFilter;
 import com.example.myexpenses.R;
 import com.example.myexpenses.model.Transaction;
 import com.example.myexpenses.repository.TransactionRepository;
@@ -35,6 +37,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+
+import static com.example.myexpenses.other.CurrencyConverter.getValueInSubUnit;
 
 public class AddNewTransactionDialog extends DialogFragment implements View.OnClickListener, RadioGroup.OnCheckedChangeListener, AdapterView.OnItemSelectedListener, View.OnTouchListener {
 
@@ -46,8 +50,8 @@ public class AddNewTransactionDialog extends DialogFragment implements View.OnCl
     private Integer currentChosenMonth;
     private Integer currentChosenYear;
 
-    private float dailyLimit;
-    private float monthlyLimit;
+    private int dailyLimit;
+    private int monthlyLimit;
 
     private Button chooseTransactionDate;
     private Button chooseTodayTomorrow;
@@ -82,8 +86,8 @@ public class AddNewTransactionDialog extends DialogFragment implements View.OnCl
         actualYear = getArguments().getInt("actualYear");
         currentChosenMonth = getArguments().getInt("currentChosenMonth");
         currentChosenYear = getArguments().getInt("currentChosenYear");
-        dailyLimit = getArguments().getFloat("dailyLimit");
-        monthlyLimit = getArguments().getFloat("monthlyLimit");
+        dailyLimit = getArguments().getInt("dailyLimit");
+        monthlyLimit = getArguments().getInt("monthlyLimit");
         actualDate = new Date();
         actualDate.setTime(getArguments().getLong("actualDate"));
     }
@@ -119,8 +123,6 @@ public class AddNewTransactionDialog extends DialogFragment implements View.OnCl
 
         chooseTransactionType = view.findViewById(R.id.chooseTransactionType);
         chooseTransactionType.setOnCheckedChangeListener(this);
-        RadioButton chosenTransactionExpense = view.findViewById(R.id.chosenTransactionExpense);
-        RadioButton chosenTransactionIncome = view.findViewById(R.id.chosenTransactionIncome);
 
         transactionCategoryImage = view.findViewById(R.id.transactionCategoryImage);
 
@@ -130,10 +132,10 @@ public class AddNewTransactionDialog extends DialogFragment implements View.OnCl
         chooseTransactionCategory.setOnItemSelectedListener(this);
 
         chooseTransactionAmount = view.findViewById(R.id.chooseTransactionAmount);
+        chooseTransactionAmount.setFilters(new InputFilter[] {new DecimalDigitsInputFilter(6,2, 100000)});
         chooseTransactionAmount.setOnTouchListener(this);
         chooseTransactionAmount.requestFocus();
-        InputMethodManager inputMethodManager = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-        inputMethodManager.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+        getDialog().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
 
         chooseTransactionName = view.findViewById(R.id.chooseTransactionName);
         chooseTransactionName.setOnTouchListener(this);
@@ -149,7 +151,7 @@ public class AddNewTransactionDialog extends DialogFragment implements View.OnCl
     }
 
     public interface AddNewTransactionDialogCommunicator {
-        void AddNewTransactionCallback(boolean shouldUpdateListView);
+        void retrieveDataFromAddNewTransactionDialog(boolean shouldUpdateListView);
     }
 
     @Override
@@ -231,9 +233,10 @@ public class AddNewTransactionDialog extends DialogFragment implements View.OnCl
                     transactionName = chooseTransactionCategory.getSelectedItem().toString();
                 }
 
-                float transactionAmount;
+                int transactionAmount;
                 try {
-                    transactionAmount = Float.parseFloat(chooseTransactionAmount.getText().toString());
+                    float transactionAmountAsFloat = Float.parseFloat(chooseTransactionAmount.getText().toString());
+                    transactionAmount = getValueInSubUnit(transactionAmountAsFloat);
                     if (transactionAmount == 0) {
                         throw new NumberFormatException();
                     }
@@ -296,7 +299,7 @@ public class AddNewTransactionDialog extends DialogFragment implements View.OnCl
                             transactionRepository.create(transactionToSave);
                             //check if we need to actualise current seen list of transactions and total sum
                             if ((monthOfNewTransaction == currentChosenMonth) && (yearOfNewTransaction == currentChosenYear)) {
-                                addNewTransactionDialogCommunicator.AddNewTransactionCallback(true);
+                                addNewTransactionDialogCommunicator.retrieveDataFromAddNewTransactionDialog(true);
                             }
                             dismiss();
                         });
@@ -311,9 +314,9 @@ public class AddNewTransactionDialog extends DialogFragment implements View.OnCl
                 transactionRepository.create(transactionToSave);
                 //check if we need to actualise current seen list of transactions and total sum
                 if ((monthOfNewTransaction == currentChosenMonth) && (yearOfNewTransaction == currentChosenYear)) {
-                    addNewTransactionDialogCommunicator.AddNewTransactionCallback(true);
+                    addNewTransactionDialogCommunicator.retrieveDataFromAddNewTransactionDialog(true);
                 }
-                addNewTransactionDialogCommunicator.AddNewTransactionCallback(false);
+                addNewTransactionDialogCommunicator.retrieveDataFromAddNewTransactionDialog(false);
                 dismiss();
                 break;
             }
@@ -321,6 +324,7 @@ public class AddNewTransactionDialog extends DialogFragment implements View.OnCl
                 break;
         }
     }
+
 
     @Override
     public void onCheckedChanged(RadioGroup group, int checkedId) {

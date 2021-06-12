@@ -6,7 +6,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.example.myexpenses.R;
-import com.example.myexpenses.customAdapter.ItemAdapter;
+import com.example.myexpenses.arrayAdapter.ItemAdapter;
 
 import java.util.Date;
 

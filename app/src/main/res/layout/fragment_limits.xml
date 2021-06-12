@@ -46,7 +46,7 @@
     </RelativeLayout>
 
     <Button
-        android:id="@+id/setDailyLimitButton"
+        android:id="@+id/setDailyAndMonthlyLimit"
         android:layout_width="match_parent"
         android:layout_height="37dp"
         android:layout_below="@+id/monthlyLimitLeft"
@@ -213,7 +213,7 @@
         android:layout_marginRight="7dp"
         android:layout_marginTop="10dp"
         android:layout_marginBottom="5dp"
-        android:layout_below="@id/setDailyLimitButton"
+        android:layout_below="@id/setDailyAndMonthlyLimit"
         android:layout_height="1dp"
         android:background="@color/separator_color"/>
 

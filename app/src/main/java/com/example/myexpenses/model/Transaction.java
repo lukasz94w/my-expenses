@@ -1,5 +1,6 @@
 package com.example.myexpenses.model;
 
+import android.annotation.SuppressLint;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -10,25 +11,27 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import com.example.myexpenses.R;
-import com.example.myexpenses.customAdapter.ItemAdapter;
+import com.example.myexpenses.arrayAdapter.ItemAdapter;
 
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
+
+import static com.example.myexpenses.other.CurrencyConverter.getValueInCurrency;
 
 public class Transaction implements Comparable<Transaction>, Item, Serializable {
 
     private int id;
     private int type;
     private String name;
-    private Float amount;
+    private Integer amount;
     private String category;
     private Date date;
 
     public Transaction() {
     }
 
-    public Transaction(int type, String name, Float amount, String category, Date date) {
+    public Transaction(int type, String name, Integer amount, String category, Date date) {
         this.type = type;
         this.name = name;
         this.amount = amount;
@@ -36,7 +39,7 @@ public class Transaction implements Comparable<Transaction>, Item, Serializable 
         this.date = date;
     }
 
-    public Transaction(int id, int type, String name, Float amount, String category, Date date) {
+    public Transaction(int id, int type, String name, Integer amount, String category, Date date) {
         this.id = id;
         this.type = type;
         this.name = name;
@@ -69,11 +72,11 @@ public class Transaction implements Comparable<Transaction>, Item, Serializable 
         this.name = name;
     }
 
-    public Float getAmount() {
+    public Integer getAmount() {
         return amount;
     }
 
-    public void setAmount(Float amount) {
+    public void setAmount(Integer amount) {
         this.amount = amount;
     }
 
@@ -131,6 +134,7 @@ public class Transaction implements Comparable<Transaction>, Item, Serializable 
         return ItemAdapter.RowType.LIST_ITEM.ordinal();
     }
 
+    @SuppressLint("DefaultLocale")
     @Override
     public View getView(LayoutInflater inflater, View view) {
         ViewHolder viewHolder;
@@ -142,19 +146,20 @@ public class Transaction implements Comparable<Transaction>, Item, Serializable 
             viewHolder = (ViewHolder) view.getTag();
         }
 
-        double transactionAmountAsDouble = this.amount;
-        if (transactionAmountAsDouble >= 0) {
-            viewHolder.transactionAmount.setText(String.format("+%.2f", transactionAmountAsDouble));
+        int transactionAmount = this.amount;
+        if (transactionAmount >= 0) {
+            viewHolder.transactionAmount.setText(String.format("+%.2f", getValueInCurrency(transactionAmount)));
             viewHolder.transactionAmount.setTextColor(ContextCompat.getColor(view.getContext(), R.color.sum_greater_than_zero));
         } else {
-            viewHolder.transactionAmount.setText(String.format("%.2f", transactionAmountAsDouble));
+            viewHolder.transactionAmount.setText(String.format("%.2f", getValueInCurrency(transactionAmount)));
             viewHolder.transactionAmount.setTextColor(ContextCompat.getColor(view.getContext(), R.color.sum_lesser_than_zero));
         }
 
-        int lengthOfTransactionName = this.name.length();
-        if (lengthOfTransactionName >= 24) {
-            int lengthOfTransactionAmount = Double.toString(transactionAmountAsDouble).length();
-            if (transactionAmountAsDouble > 0) {
+        String transactionName = this.name;
+        int lengthOfTransactionName = transactionName.length();
+        if (lengthOfTransactionName >= 19) {
+            int lengthOfTransactionAmount = String.valueOf(transactionAmount).length();
+            if (transactionAmount > 0) {
                 lengthOfTransactionAmount = lengthOfTransactionAmount + 2; //situation when '+' is added
             }
             int additionalSpaceForText;
@@ -163,13 +168,13 @@ public class Transaction implements Comparable<Transaction>, Item, Serializable 
             } else {
                 additionalSpaceForText = 7 - lengthOfTransactionAmount;
             }
-            viewHolder.transactionName.setText(this.name.substring(0, 20 + additionalSpaceForText) + "...");
+            viewHolder.transactionName.setText(transactionName.substring(0, 20 + additionalSpaceForText) + "...");
         } else {
-            viewHolder.transactionName.setText(this.name);
+            viewHolder.transactionName.setText(transactionName);
         }
 
-        String categoryName = this.category.toLowerCase().replace(" ", "_"); //prepare R.drawable.name: toLowerCase() because Android restrict Drawable filenames to not use Capital letters in their names, and also simple replace
-        int res = view.getContext().getResources().getIdentifier(categoryName, "drawable", view.getContext().getPackageName());
+        String transactionCategory = this.category.toLowerCase().replace(" ", "_"); //prepare R.drawable.name: toLowerCase() because Android restrict Drawable filenames to not use Capital letters in their names, and also simple replace
+        int res = view.getContext().getResources().getIdentifier(transactionCategory, "drawable", view.getContext().getPackageName());
         viewHolder.transactionImage.setImageResource(res);
 
         return view;

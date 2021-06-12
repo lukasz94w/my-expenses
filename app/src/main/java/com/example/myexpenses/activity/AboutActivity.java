@@ -1,14 +1,15 @@
-package com.example.myexpenses;
+package com.example.myexpenses.activity;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.NavUtils;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
+
+import com.example.myexpenses.R;
 
 public class AboutActivity extends AppCompatActivity implements View.OnClickListener {
 

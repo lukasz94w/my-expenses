@@ -7,4 +7,10 @@
         android:title="deleteTransactions"
         android:icon="@drawable/delete_transactions"
         myapp:showAsAction="always" />
+
+    <item
+        android:id="@+id/selectAll"
+        android:title="selectAll"
+        myapp:showAsAction="always" />
+
 </menu>

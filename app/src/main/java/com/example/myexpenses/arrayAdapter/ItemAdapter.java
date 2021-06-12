@@ -1,4 +1,4 @@
-package com.example.myexpenses.customAdapter;
+package com.example.myexpenses.arrayAdapter;
 
 import android.app.Activity;
 import android.view.LayoutInflater;

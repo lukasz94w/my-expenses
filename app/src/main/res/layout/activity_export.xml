@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ExportActivity">
+    tools:context=".activity.ExportActivity">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/tool_bar"
@@ -12,144 +12,36 @@
         android:layout_height="wrap_content"
         android:background="?attr/colorPrimary" />
 
-    <CheckBox
-        android:id="@+id/activateDateSelection"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:scaleY="1.3"
-        android:scaleX="1.3"
-        android:layout_marginTop="90dp"
-        app:buttonTint="@color/check_box_color"
-        android:layout_marginStart="20dp" />
-
-    <Button
-        android:id="@+id/chooseTransactionDateFrom"
-        android:layout_width="130dp"
-        android:layout_height="35dp"
-        android:layout_marginStart="62dp"
-        android:layout_marginTop="90dp"
-        android:background="@drawable/ripple_buttons"
-        android:elevation="4dp"
-        android:padding="7dp"
-        android:textAllCaps="false"
-        android:textSize="16sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:layout_marginTop="85dp"
-        android:layout_marginStart="202dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="30sp"
-        android:text="-"/>
-
-    <Button
-        android:id="@+id/chooseTransactionDateTo"
-        android:layout_alignParentEnd="true"
-        android:layout_width="130dp"
-        android:layout_height="35dp"
-        android:layout_marginTop="90dp"
-        android:layout_marginEnd="32dp"
-        android:background="@drawable/ripple_buttons"
-        android:elevation="4dp"
-        android:padding="7dp"
-        android:textAllCaps="false"
-        android:textSize="16sp"
-        android:textStyle="bold" />
-
-    <CheckBox
-        android:id="@+id/activateTransactionTypeSelection"
-        android:layout_width="wrap_content"
-        android:layout_below="@id/chooseTransactionDateFrom"
-        android:layout_height="wrap_content"
-        android:scaleY="1.3"
-        android:scaleX="1.3"
-        android:layout_marginTop="30dp"
-        app:buttonTint="@color/check_box_color"
-        android:layout_marginStart="20dp" />
-
-    <RadioGroup
-        android:id="@+id/chooseTransactionTypeToBeSaved"
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout"
+        android:layout_below="@id/tool_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/chooseTransactionDateFrom"
-        android:orientation="horizontal">
+        android:background="@color/ColorPrimary"
+        app:tabTextAppearance="@style/CustomTabLayoutTextAppearance"
+        app:tabIndicatorHeight="0dp"
+        app:tabSelectedTextColor="@android:color/white"
+        app:tabBackground="@drawable/tab_layout_selector"
+        app:tabTextColor="@android:color/white">
 
-    <RadioButton
-        android:id="@+id/selectedExpense"
-        android:background="@drawable/background_drawable"
-        android:layout_marginStart="62dp"
-        android:layout_marginTop="30dp"
-        android:button="@null"
-        android:gravity="center"
-        android:layout_width="144dp"
-        android:text="@string/expenses"
-        android:textSize="18sp"
-        android:checked="true"
-        android:elevation="4dp"
-        android:layout_height="35dp"
-        />
+        <com.google.android.material.tabs.TabItem
+            android:id="@+id/tabExportSelection"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/export_selection"/>
 
-    <RadioButton
-        android:id="@+id/selectedIncome"
-        android:background="@drawable/background_drawable"
-        android:layout_marginStart="2dp"
-        android:layout_marginTop="30dp"
-        android:button="@null"
-        android:gravity="center"
-        android:layout_width="144dp"
-        android:text="@string/incomes"
-        android:textSize="18sp"
-        android:elevation="4dp"
-        android:layout_height="35dp"
-        />
+        <com.google.android.material.tabs.TabItem
+            android:id="@+id/tabExportAll"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/export_all"/>
 
-    </RadioGroup>
+    </com.google.android.material.tabs.TabLayout>
 
-    <CheckBox
-        android:id="@+id/activateTransactionCategorySelection"
-        android:layout_width="wrap_content"
-        android:layout_below="@id/activateTransactionTypeSelection"
-        android:layout_height="wrap_content"
-        android:scaleY="1.3"
-        android:scaleX="1.3"
-        android:layout_marginTop="30dp"
-        app:buttonTint="@color/check_box_color"
-        android:layout_marginStart="20dp" />
-
-    <ImageView
-        android:id="@+id/transactionCategoryImageToBeSaved"
-        android:layout_marginTop="19.5dp"
-        android:layout_marginStart="64dp"
-        android:layout_width="42dp"
-        android:layout_height="42dp"
-        android:layout_below="@id/activateTransactionTypeSelection"
-        android:background="@drawable/food" />
-
-    <Spinner
-        android:id="@+id/chooseTransactionsCategoryToBeSaved"
-        android:popupBackground="@color/white"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="15dp"
-        android:layout_width="260dp"
-        android:layout_height="50dp"
-        android:layout_below="@+id/activateTransactionTypeSelection"
-        android:layout_alignParentEnd="true"
-        android:entries="@array/list_of_expenses"
-        android:backgroundTint="@color/check_box_color"
-        android:textAlignment="textStart" />
-
-    <Button
-        android:id="@+id/saveToFile"
+    <androidx.viewpager.widget.ViewPager
+        android:id="@+id/viewPager"
+        android:layout_below="@id/tabLayout"
         android:layout_width="match_parent"
-        android:layout_marginLeft="29dp"
-        android:layout_marginRight="29dp"
-        android:layout_height="39dp"
-        android:layout_below="@id/activateTransactionCategorySelection"
-        android:layout_marginTop="35dp"
-        android:background="@drawable/ripple_buttons"
-        android:textSize="17sp"
-        android:layout_centerInParent="true"
-        android:text="@string/save_to_csv_file"/>
+        android:layout_height="match_parent" />
 
 </RelativeLayout>

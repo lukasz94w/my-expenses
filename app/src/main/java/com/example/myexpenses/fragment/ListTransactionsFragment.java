@@ -1,18 +1,13 @@
 package com.example.myexpenses.fragment;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.DatePickerDialog;
-import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
-import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.ActionMode;
 import android.view.Gravity;
@@ -20,22 +15,15 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.PopupMenu;
-import android.widget.PopupWindow;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -51,7 +39,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.ListFragment;
 
 import com.example.myexpenses.R;
-import com.example.myexpenses.customAdapter.ItemAdapter;
+import com.example.myexpenses.arrayAdapter.ItemAdapter;
 import com.example.myexpenses.dialogFragment.AddNewTransactionDialog;
 import com.example.myexpenses.dialogFragment.ModifyTransactionDialog;
 import com.example.myexpenses.model.Header;
@@ -61,18 +49,15 @@ import com.example.myexpenses.repository.TransactionRepository;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
-import static android.content.Context.LAYOUT_INFLATER_SERVICE;
 import static android.content.Context.MODE_PRIVATE;
+import static com.example.myexpenses.other.CurrencyConverter.getValueInCurrency;
 
 public class ListTransactionsFragment extends ListFragment implements AdapterView.OnItemClickListener, View.OnClickListener, AdapterView.OnItemSelectedListener, SearchView.OnQueryTextListener, AddNewTransactionDialog.AddNewTransactionDialogCommunicator, ModifyTransactionDialog.ModifyTransactionDialogCommunicator {
 
@@ -89,8 +74,8 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
     private int actualMonth;
     private int actualYear;
     private Date actualDate;
-    private Float dailyLimit;
-    private Float monthlyLimit;
+    private int dailyLimit;
+    private int monthlyLimit;
 
     //search criteria
     private Integer currentChosenMonth;
@@ -102,6 +87,8 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
 
     private SearchView searchView;
     private Menu menu;
+
+    private  FloatingActionButton FABaddNewTransaction;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -125,8 +112,8 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
 
         sharedPreferences = this.getActivity().getSharedPreferences("SharedPreferences", MODE_PRIVATE);
         //default values if they not have been initialized yet
-        dailyLimit = sharedPreferences.getFloat("Daily limit", 1000);
-        monthlyLimit = sharedPreferences.getFloat("Monthly limit", 5000);
+        dailyLimit = sharedPreferences.getInt("dailyLimit", 1000 * 100);
+        monthlyLimit = sharedPreferences.getInt("monthlyLimit", 5000 * 100);
         transactionsType = sharedPreferences.getInt("Type of view", 2);
 
         requireActivity().getOnBackPressedDispatcher().addCallback(this, onBackPressedCallback);
@@ -165,8 +152,8 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
 
         updateView("NO_ANIMATION");
 
-        FloatingActionButton addNewTransaction = view.findViewById(R.id.addNewTransaction);
-        addNewTransaction.setOnClickListener(this);
+        FABaddNewTransaction = view.findViewById(R.id.FABaddNewTransaction);
+        FABaddNewTransaction.setOnClickListener(this);
 
         return view;
     }
@@ -301,7 +288,7 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
                 break;
             }
 
-            case R.id.addNewTransaction: {
+            case R.id.FABaddNewTransaction: {
 
                 FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
                 AddNewTransactionDialog addNewTransactionDialog = new AddNewTransactionDialog();
@@ -314,8 +301,8 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
                 data.putInt("actualYear", actualYear);
                 data.putInt("currentChosenMonth", currentChosenMonth);
                 data.putInt("currentChosenYear", currentChosenYear);
-                data.putFloat("dailyLimit", dailyLimit);
-                data.putFloat("monthlyLimit", monthlyLimit);
+                data.putInt("dailyLimit", dailyLimit);
+                data.putInt("monthlyLimit", monthlyLimit);
                 data.putLong("actualDate", actualDate.getTime());
                 addNewTransactionDialog.setArguments(data);
 
@@ -353,16 +340,16 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
                 (String) transactionsCategory.getSelectedItem(),
                 transactionsOrder});
 
-        double sumOfCurrentChosenMonthTransactions = foundedMonthTransactions.stream()
-                .mapToDouble(Transaction::getAmount)
+        int sumOfCurrentChosenMonthTransactions = foundedMonthTransactions.stream()
+                .mapToInt(Transaction::getAmount)
                 .sum();
 
-        double sumOfCurrentChosenMonthExpenses = foundedMonthTransactions.stream()
+        int sumOfCurrentChosenMonthExpenses = foundedMonthTransactions.stream()
                 .filter(o -> o.getType() == 1)
-                .mapToDouble(o -> Math.abs(o.getAmount()))
+                .mapToInt(o -> Math.abs(o.getAmount()))
                 .sum();
 
-        double sumOfActualDayExpenses = 0;
+        int sumOfActualDayExpenses = 0;
         if (currentChosenMonth == actualMonth && currentChosenYear == actualYear) {
             sumOfActualDayExpenses = Math.abs(transactionRepository.getSumOfDailyExpenses(actualDay, actualMonth, actualYear));
         }
@@ -372,10 +359,10 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
 
         Spannable sumOfMonthlyTransactions;
         if (sumOfCurrentChosenMonthTransactions >= 0) {
-            sumOfMonthlyTransactions = new SpannableString(String.format("+%.2f", sumOfCurrentChosenMonthTransactions));
+            sumOfMonthlyTransactions = new SpannableString(String.format("+%.2f", getValueInCurrency(sumOfCurrentChosenMonthTransactions)));
             sumOfMonthlyTransactions.setSpan(new ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.sum_greater_than_zero)), 0, sumOfMonthlyTransactions.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         } else {
-            sumOfMonthlyTransactions = new SpannableString(String.format("%.2f", sumOfCurrentChosenMonthTransactions));
+            sumOfMonthlyTransactions = new SpannableString(String.format("%.2f", getValueInCurrency(sumOfCurrentChosenMonthTransactions)));
             sumOfMonthlyTransactions.setSpan(new ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.sum_lesser_than_zero)), 0, sumOfMonthlyTransactions.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
         monthlyTransactionSum.setText(sumOfMonthlyTransactions);
@@ -487,16 +474,19 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         getListView().setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
         getListView().setSelector(R.drawable.level_list_selector);
         getListView().setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener() {
 
+            int numberOfTransactionsOnList = 0;
+            MenuItem selectAll;
+
             @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
-            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-                switch (item.getItemId()) {
-                    case R.id.deleteTransactions:
-
+            public boolean onActionItemClicked(ActionMode mode, MenuItem menuItem) {
+                switch (menuItem.getItemId()) {
+                    case R.id.deleteTransactions: {
                         SparseBooleanArray checkedItemPositions = getListView().getCheckedItemPositions();
                         String[] transactionsIds = new String[checkedItemPositions.size()];
                         for (int i = 0; i < checkedItemPositions.size(); i++) {
@@ -526,6 +516,31 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
                         AlertDialog alertDialog = builder.create();
                         alertDialog.show();
                         break;
+                    }
+
+                    case R.id.selectAll: {
+
+                        if (menuItem.isChecked()) {
+                            for (int i = 0; i < getListView().getAdapter().getCount(); i++) {
+                                Object item = getListView().getAdapter().getItem(i);
+                                if (item instanceof Transaction) {
+                                    getListView().setItemChecked(i, true);
+                                }
+                                menuItem.setIcon(R.drawable.unselect_all);
+                                menuItem.setChecked(false);
+                            }
+                        } else {
+                            for (int i = 0; i < getListView().getAdapter().getCount(); i++) {
+                                Object item = getListView().getAdapter().getItem(i);
+                                if (item instanceof Transaction) {
+                                    getListView().setItemChecked(i, false);
+                                }
+                                menuItem.setIcon(R.drawable.select_all);
+                            }
+                        }
+                        break;
+                    }
+
                     default:
                         break;
                 }
@@ -544,6 +559,29 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
                     filterBar.setVisibility(View.GONE);
                 }
 
+                //hide FAB
+                FABaddNewTransaction.hide();
+
+                selectAll = menu.findItem(R.id.selectAll);
+                numberOfTransactionsOnList = getListView().getAdapter().getCount();
+
+                int totalAmountOfTransactionsOnList = 0;
+                for (int i = 0; i < getListView().getAdapter().getCount(); i++) {
+                    Object item = getListView().getAdapter().getItem(i);
+                    if (item instanceof Transaction) {
+                        totalAmountOfTransactionsOnList++;
+                    }
+                }
+
+                numberOfTransactionsOnList = totalAmountOfTransactionsOnList;
+
+                if (totalAmountOfTransactionsOnList == 1) {
+                    selectAll.setIcon(R.drawable.unselect_all);
+                } else {
+                    selectAll.setIcon(R.drawable.select_all);
+                    selectAll.setChecked(true);
+                }
+
                 return true;
             }
 
@@ -558,6 +596,8 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
                 //clear filters
                 transactionsCategory.setSelection(0);
                 transactionsOrder = "";
+                //show FAB
+                FABaddNewTransaction.show();
                 updateView("NO_ANIMATION");
             }
 
@@ -567,11 +607,21 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
             }
 
             @Override
-            public void onItemCheckedStateChanged(ActionMode mode, int position, long id, boolean arg3) {
+            public void onItemCheckedStateChanged(ActionMode mode, int position, long id,
+                                                  boolean arg3) {
 
                 int checkedItems = getListView().getCheckedItemCount();
+                //if we checked all transaction then change selectAll icon
+                if(checkedItems == numberOfTransactionsOnList) {
+                    selectAll.setIcon(R.drawable.unselect_all);
+                    selectAll.setChecked(false);
+                }
+                else {
+                    selectAll.setIcon(R.drawable.select_all);
+                    selectAll.setChecked(true);
+                }
 
-                double sumOfSelectedTransactions = 0;
+                int sumOfSelectedTransactions = 0;
                 SparseBooleanArray checkedItemPositions = getListView().getCheckedItemPositions();
                 for (int i = 0; i < checkedItemPositions.size(); i++) {
                     if (checkedItemPositions.valueAt(i)) {
@@ -581,9 +631,16 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
                 }
 
                 if (checkedItems == 1) {
-                    mode.setTitle(checkedItems + " Transaction = " + sumOfSelectedTransactions);
+                    mode.setTitle(checkedItems + " Item = " + String.format("%.2f", getValueInCurrency(sumOfSelectedTransactions)));
                 } else {
-                    mode.setTitle(checkedItems + " Transactions = " + sumOfSelectedTransactions);
+                    String text = Double.toString(Math.abs(sumOfSelectedTransactions));
+                    int integerPlaces = text.indexOf('.');
+                    if (integerPlaces > 7) {
+                        mode.setTitle(checkedItems + " Items = " + String.format("%.2e", getValueInCurrency(sumOfSelectedTransactions)));
+                    }
+                    else {
+                        mode.setTitle(checkedItems + " Items = " + String.format("%.2f", getValueInCurrency(sumOfSelectedTransactions)));
+                    }
                 }
             }
         });
@@ -647,7 +704,7 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
-    public void AddNewTransactionCallback(boolean shouldUpdateListView) {
+    public void retrieveDataFromAddNewTransactionDialog(boolean shouldUpdateListView) {
         Snackbar snackbar = Snackbar.make(getView(), "Record successfully added", Snackbar.LENGTH_LONG);
         snackbar.show();
 
@@ -658,7 +715,7 @@ public class ListTransactionsFragment extends ListFragment implements AdapterVie
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
-    public void ModifyTransactionCallback(int typeOfOperation) {
+    public void retrieveDataFromModifyTransactionDialog(int typeOfOperation) {
         Snackbar snackbar;
         switch (typeOfOperation) {
             case 1:

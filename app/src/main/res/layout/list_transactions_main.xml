@@ -62,7 +62,8 @@
                 android:background="@drawable/ripple_image_buttons"
                 android:clickable="true"
                 android:focusable="true"
-                android:src="@drawable/left_arrow" />
+                android:src="@drawable/left_arrow"
+                android:onClick="previousMonthOnClick"/>
 
             <ImageButton
                 android:id="@+id/nextMonth"
@@ -113,6 +114,7 @@
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:text="No records found"
+            android:textSize="18sp"
             android:visibility="gone" />
 
     </RelativeLayout>

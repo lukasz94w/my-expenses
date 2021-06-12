@@ -46,7 +46,7 @@
     <color name="incomes_color">#D0D0D0</color>
     <color name="expenses_color">#B5B5B5</color>
     //chart line seperator color
-    <color name="separator_color">#B6000000</color>
+    <color name="separator_color">#EBE9E9</color>
     //BarChart gridline colors
     <color name="grid_color">#43000000</color>
     //BarChart in limits colors
@@ -57,5 +57,8 @@
     <color name="check_box_color">#75000000</color>
 
     <color name="text_color">#5C5F59</color>
+
+
+    <color name="tab_background_unselected">#A6C7A8</color>
 
 </resources>

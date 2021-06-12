@@ -1,4 +1,4 @@
-package com.example.myexpenses.customValueFormatter;
+package com.example.myexpenses.valueFormatter;
 
 import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.formatter.ValueFormatter;

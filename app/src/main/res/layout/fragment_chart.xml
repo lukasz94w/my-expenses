@@ -86,5 +86,14 @@
 
     </ScrollView>
 
+    <TextView
+        android:id="@+id/noDataText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="No records found"
+        android:textSize="18sp"
+        android:visibility="gone"/>
+
 </RelativeLayout>
 
