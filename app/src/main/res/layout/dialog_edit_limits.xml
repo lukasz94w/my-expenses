@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    android:id="@+id/popup_element"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="match_parent"
+    android:layout_width="match_parent"
+    android:background="@color/backgroundColorPopup">
+
+    <include
+        android:id="@+id/tool_bar"
+        layout="@layout/tool_bar_for_popup_window" />
+
+    <TextView
+        android:id="@+id/setDailyLimitDesc"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="12dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tool_bar"
+        android:text="Daily limit (max 10 000)"
+        />
+
+    <EditText
+        android:id="@+id/setDailyLimit"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_alignParentStart="true"
+        android:layout_below="@id/setDailyLimitDesc"
+        android:textColor="@color/BrownGrey"
+        android:paddingLeft="10dp"
+        android:hint="Amount"
+        android:textColorHint="@color/BrownGreyBrighter"
+        android:inputType="numberDecimal"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/custom_edit_text"
+        android:drawableEnd="@drawable/clear_edittext"
+        android:paddingRight="10dp"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/setMonthlyLimitDesc"
+        android:layout_marginTop="10dp"
+        android:layout_marginStart="12dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/setDailyLimit"
+        android:text="Monthly limit (max 100 000)"
+        />
+
+    <EditText
+        android:id="@+id/setMonthlyLimit"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_alignParentStart="true"
+        android:layout_below="@id/setMonthlyLimitDesc"
+        android:textColor="@color/BrownGrey"
+        android:paddingLeft="10dp"
+        android:hint="Amount"
+        android:textColorHint="@color/BrownGreyBrighter"
+        android:inputType="numberDecimal"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:background="@drawable/custom_edit_text"
+        android:drawableEnd="@drawable/clear_edittext"
+        android:paddingRight="10dp"
+        android:textSize="20sp" />
+
+    <Button
+        android:id="@+id/saveNewLimits"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:layout_below="@+id/setMonthlyLimit"
+        android:layout_centerInParent="true"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginBottom="5dp"
+        android:background="@drawable/ripple_buttons"
+        android:text="@string/save_transaction"
+        android:textSize="15sp" />
+
+</RelativeLayout>

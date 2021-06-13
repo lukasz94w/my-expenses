@@ -1,3 +1,138 @@
 <resources>
-    <string name="app_name">MyExpenses</string>
+    <string name="app_name">My Finances</string>
+    <string name="header_my_finance">My finances</string>
+    <string name="save_transaction"><b>Save</b></string>
+    <string name="save_new_transaction"><b>Save as new</b></string>
+    <string name="delete_transaction"><b>Delete</b></string>
+
+
+    <string name="openDrawer">open_drawer</string>
+    <string name="closeDrawer">close_drawer</string>
+
+
+    <string name="set_limits">Limits</string>
+    <string name="details">Details</string>
+    <string name="daily_limit">Daily limit:</string>
+    <string name="daily_limit_set">Limit set:</string>
+    <string name="daily_limit_left">Limit left:</string>
+    <string name="monthly_limit">Monthly limit:</string>
+    <string name="monthly_limit_set">Limit set:</string>
+    <string name="monthly_limit_left">Limit left:</string>
+    <string name="set_limits_button">Set limits</string>
+
+    <string name="limit_title">Limit exceeded!</string>
+    <string name="limit_yes_button">YES</string>
+    <string name="limit_no_button">NO</string>
+    <string name="limit_warning_daily_and_monthly_message">After this transaction the <b>daily</b> and <b>monthly</b> limits will be exceeded</string>
+    <string name="limit_warning_daily_message">After this transaction the <b>daily</b> limit will be exceeded</string>
+    <string name="limit_warning_monthly_message">After this transaction the <b>monthly</b> limit will be exceeded</string>
+
+    <string name="unsaved_date_title">Unsaved data</string>
+    <string name="unsaved_data_yes_button">YES</string>
+    <string name="unsaved_data_no_button">NO</string>
+    <string name="unsaved_data_message">Unsaved data will be lost. \nProceed?</string>
+
+    <string name="delete_transaction_message">Transaction will be deleted. \nProceed?</string>
+    <string name="delete_transactions_message">Transactions will be deleted. \nProceed?</string>
+    <string name="delete_transaction_yes_button">YES</string>
+    <string name="delete_transaction_no_button">NO</string>
+
+    <string name="today">Today </string>
+    <string name="yesterday">Yesterday </string>
+    <string name="expense">Expense </string>
+    <string name="income">Income </string>
+
+    //list of possible combinations of sorting
+    <string name="order_by_date_desc">By date (descending)</string>
+    <string name="order_by_date_asc">By date (ascending)</string>
+    <string name="order_by_value_desc">By value (descending)</string>
+    <string name="order_by_value_asc">By value (ascending)</string>
+    <string name="order_by_category_desc">By category (descending)</string>
+    <string name="order_by_category_asc">By category (ascending)</string>
+
+    <string name="monthly_expenses">Monthly expenses</string>
+    <string name="list_transactions_title">Basic overview</string>
+    <string name="limits_title">Limits</string>
+    <string name="charts">Graphic overview</string>
+    <string name="title_activity_limits">LimitsActivity</string>
+    <string name="first_fragment_label">First Fragment</string>
+
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="hello_first_fragment">Hello first fragment</string>
+    <!-- Strings used for fragments for navigation -->
+    <string name="hello_second_fragment">Hello second fragment. Arg: %1$s</string>
+    <string name="export">Export</string>
+    <string name="expenses">Expenses</string>
+    <string name="incomes">Incomes</string>
+    <string name="save_to_file">Save to file</string>
+    <string name="save_to_csv_file">Save to CSV file</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings">Settings</string>
+    <string name="settings_present_incomes">Present incomes on bar charts</string>
+    <string name="settings_generate_random_data">Generate random data</string>
+    <string name="deleteAllData">Wipe all data</string>
+    <string name="delete_all_data_warning">Are you sure?\nThis will delete all transactions</string>
+    <string name="random_data_message">This will create random transactions\nProceed?</string>
+    <string name="about">About</string>
+    <string name="app_version">Version 1.0.0</string>
+    <string name="app_author">Created by Łukasz W</string>
+    <string name="contact_with_author">Send email</string>
+    <string name="rate_app">Rate app</string>
+    <string name="release_notes">Release notes</string>
+    <string name="incorrect_value_message">Incorrect value. Please enter valid amount</string>
+    <string name="OK">OK</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="export_selection">Export selection</string>
+    <string name="export_all">Export all</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="settings_present_total_values">Present total values on pie chart</string>
+    <string name="settings_pie_chart_animation">Show pie chart animation</string>
+    <string-array name="list_of_expenses">
+        <item>Food</item>
+        <item>Car</item>
+        <item>Game</item>
+        <item>Sport</item>
+        <item>Health</item>
+        <item>Hobby</item>
+        <item>Other</item>
+    </string-array>
+
+    <string-array name="list_of_incomes">
+        <item>Payment</item>
+        <item>Gift</item>
+        <item>Other</item>
+    </string-array>
+    <string-array name="filter_list_of_transactions">
+        <item>All categories</item>
+        <item>Food</item>
+        <item>Car</item>
+        <item>Game</item>
+        <item>Sport</item>
+        <item>Health</item>
+        <item>Hobby</item>
+        <item>Other</item>
+        <item>Payment</item>
+        <item>Gift</item>
+        <item>Other</item>
+    </string-array>
+    <string-array name="filter_list_of_expenses">
+        <item>All categories</item>
+        <item>Food</item>
+        <item>Car</item>
+        <item>Game</item>
+        <item>Sport</item>
+        <item>Health</item>
+        <item>Hobby</item>
+        <item>Other</item>
+    </string-array>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string-array name="filter_list_of_incomes">
+        <item>All categories</item>
+        <item>Payment</item>
+        <item>Gift</item>
+        <item>Other</item>
+    </string-array>
+
 </resources>

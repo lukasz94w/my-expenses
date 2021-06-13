@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group
+        android:id="@+id/menu_top"
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/list_transactions"
+            android:icon="@drawable/expense"
+            android:title="@string/list_transactions_title" />
+        <item
+            android:id="@+id/charts"
+            android:icon="@drawable/chart"
+            android:title="@string/charts" />
+    </group>
+
+    <group
+        android:id="@+id/menu_middle"
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/limits"
+            android:icon="@drawable/limits"
+            android:title="@string/limits_title" />
+        <item
+            android:id="@+id/export"
+            android:icon="@drawable/export"
+            android:title="@string/export" />
+
+    </group>
+
+    <group
+        android:id="@+id/menu_bottom"
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/settings"
+            android:icon="@drawable/settings"
+            android:title="@string/settings_title" />
+        <item
+            android:id="@+id/about"
+            android:icon="@drawable/about"
+            android:title="@string/about" />
+
+    </group>
+</menu>
