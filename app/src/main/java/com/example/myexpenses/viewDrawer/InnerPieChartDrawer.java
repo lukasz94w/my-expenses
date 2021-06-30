@@ -23,22 +23,19 @@ import java.util.Map;
 
 import static com.example.myexpenses.other.CurrencyConverter.getValueInCurrency;
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.summingDouble;
 import static java.util.stream.Collectors.summingInt;
 
 public class InnerPieChartDrawer {
     private final Context context;
     private final List<Transaction> monthTransactions;
-    private final boolean sharedPrefShouldShowPieChartAnimation;
     private final boolean sharedPrefShouldPresentTotalValues;
 
     private PieChart pieChart;
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    public InnerPieChartDrawer(Context context, List<Transaction> transactionList, boolean sharedPrefShouldShowPieChartAnimation, boolean sharedPrefShouldPresentTotalValues) {
+    public InnerPieChartDrawer(Context context, List<Transaction> transactionList, boolean sharedPrefShouldPresentTotalValues) {
         this.context = context;
         this.monthTransactions = transactionList;
-        this.sharedPrefShouldShowPieChartAnimation = sharedPrefShouldShowPieChartAnimation;
         this.sharedPrefShouldPresentTotalValues = sharedPrefShouldPresentTotalValues;
 
         configurePieChartAppearance();
@@ -96,9 +93,6 @@ public class InnerPieChartDrawer {
         pieData.setValueTextColor(Color.DKGRAY);
         pieDataSet.setColors(transactionColor);
         pieChart.setData(pieData);
-        if (sharedPrefShouldShowPieChartAnimation) {
-            pieChart.animateXY(1000, 1000);
-        }
         pieChart.invalidate();
     }
 

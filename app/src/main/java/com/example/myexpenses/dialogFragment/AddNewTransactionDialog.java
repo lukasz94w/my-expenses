@@ -1,8 +1,9 @@
 package com.example.myexpenses.dialogFragment;
 
+import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
-import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.InputFilter;
@@ -35,9 +36,12 @@ import com.example.myexpenses.repository.TransactionRepository;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.Calendar;
 import java.util.Date;
 
+import static android.content.Context.MODE_PRIVATE;
 import static com.example.myexpenses.other.CurrencyConverter.getValueInSubUnit;
 
 public class AddNewTransactionDialog extends DialogFragment implements View.OnClickListener, RadioGroup.OnCheckedChangeListener, AdapterView.OnItemSelectedListener, View.OnTouchListener {
@@ -63,15 +67,18 @@ public class AddNewTransactionDialog extends DialogFragment implements View.OnCl
 
     private TransactionRepository transactionRepository;
 
-    private AddNewTransactionDialogCommunicator addNewTransactionDialogCommunicator;
+    private AddNewTransactionDialogCallback addNewTransactionDialogCallback;
+
+    private boolean sharedPrefShouldUseCategoryNameIfNoteIsEmpty;
+
 
     @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
+    public void onAttach(@NonNull Activity activity) {
+        super.onAttach(activity);
         try {
-            addNewTransactionDialogCommunicator = (AddNewTransactionDialogCommunicator) getTargetFragment();
+            addNewTransactionDialogCallback = (AddNewTransactionDialogCallback) activity;
         } catch (ClassCastException e) {
-            throw new ClassCastException("Calling Fragment must implement AddNewTransactionDialog.AddNewTransactionDialogCommunicator");
+            throw new ClassCastException("Calling Activity must implement AddNewTransactionDialog.AddNewTransactionDialogCallback");
         }
     }
 
@@ -88,8 +95,16 @@ public class AddNewTransactionDialog extends DialogFragment implements View.OnCl
         currentChosenYear = getArguments().getInt("currentChosenYear");
         dailyLimit = getArguments().getInt("dailyLimit");
         monthlyLimit = getArguments().getInt("monthlyLimit");
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.MILLISECOND, 0);
+        calendar.set(currentChosenYear, currentChosenMonth, actualDay, 0, 0, 0);
         actualDate = new Date();
-        actualDate.setTime(getArguments().getLong("actualDate"));
+        actualDate.setTime(calendar.getTime().getTime());
+
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("SharedPreferences", MODE_PRIVATE);
+        //default value if it wasn't initialized yet
+        sharedPrefShouldUseCategoryNameIfNoteIsEmpty = sharedPreferences.getBoolean("sharedPrefShouldUseCategoryNameIfNoteIsEmpty", true);
     }
 
     @Nullable
@@ -132,7 +147,7 @@ public class AddNewTransactionDialog extends DialogFragment implements View.OnCl
         chooseTransactionCategory.setOnItemSelectedListener(this);
 
         chooseTransactionAmount = view.findViewById(R.id.chooseTransactionAmount);
-        chooseTransactionAmount.setFilters(new InputFilter[] {new DecimalDigitsInputFilter(6,2, 100000)});
+        chooseTransactionAmount.setFilters(new InputFilter[]{new DecimalDigitsInputFilter(6, 2, 100000)});
         chooseTransactionAmount.setOnTouchListener(this);
         chooseTransactionAmount.requestFocus();
         getDialog().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
@@ -145,15 +160,13 @@ public class AddNewTransactionDialog extends DialogFragment implements View.OnCl
 
         ImageButton toolbarClose = view.findViewById(R.id.toolbarClose);
         toolbarClose.setOnClickListener(this);
-
-        saveNewTransaction = view.findViewById(R.id.saveNewTransaction);
-        saveNewTransaction.setOnClickListener(this);
     }
 
-    public interface AddNewTransactionDialogCommunicator {
-        void retrieveDataFromAddNewTransactionDialog(boolean shouldUpdateListView);
+    public interface AddNewTransactionDialogCallback {
+        void addNewTransactionDialogCallback(int monthOffset);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -227,10 +240,13 @@ public class AddNewTransactionDialog extends DialogFragment implements View.OnCl
 
                 Transaction transactionToSave = new Transaction();
 
-                //check if name field is empty, if so we set it as category name
                 String transactionName = chooseTransactionName.getText().toString();
-                if (transactionName.equals("")) {
-                    transactionName = chooseTransactionCategory.getSelectedItem().toString();
+
+                //check if name field is empty, if so we set it as category name
+                if (sharedPrefShouldUseCategoryNameIfNoteIsEmpty) {
+                    if (transactionName.equals("")) {
+                        transactionName = chooseTransactionCategory.getSelectedItem().toString();
+                    }
                 }
 
                 int transactionAmount;
@@ -299,7 +315,7 @@ public class AddNewTransactionDialog extends DialogFragment implements View.OnCl
                             transactionRepository.create(transactionToSave);
                             //check if we need to actualise current seen list of transactions and total sum
                             if ((monthOfNewTransaction == currentChosenMonth) && (yearOfNewTransaction == currentChosenYear)) {
-                                addNewTransactionDialogCommunicator.retrieveDataFromAddNewTransactionDialog(true);
+                                addNewTransactionDialogCallback.addNewTransactionDialogCallback(0);
                             }
                             dismiss();
                         });
@@ -314,15 +330,27 @@ public class AddNewTransactionDialog extends DialogFragment implements View.OnCl
                 transactionRepository.create(transactionToSave);
                 //check if we need to actualise current seen list of transactions and total sum
                 if ((monthOfNewTransaction == currentChosenMonth) && (yearOfNewTransaction == currentChosenYear)) {
-                    addNewTransactionDialogCommunicator.retrieveDataFromAddNewTransactionDialog(true);
+                    addNewTransactionDialogCallback.addNewTransactionDialogCallback(0);
+                } else {
+                    addNewTransactionDialogCallback.addNewTransactionDialogCallback(getMonthOffset(monthOfNewTransaction, yearOfNewTransaction));
                 }
-                addNewTransactionDialogCommunicator.retrieveDataFromAddNewTransactionDialog(false);
                 dismiss();
                 break;
             }
             default:
                 break;
         }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private int getMonthOffset(int monthOfNewTransaction, int yearOfNewTransaction) {
+
+        LocalDate newTransactionDate = LocalDate.of(yearOfNewTransaction, monthOfNewTransaction, 1);
+        LocalDate currentChosenMonthInList = LocalDate.of(currentChosenYear, currentChosenMonth, 1);
+
+        Period diff = Period.between(newTransactionDate, currentChosenMonthInList);
+
+        return diff.getMonths();
     }
 
 

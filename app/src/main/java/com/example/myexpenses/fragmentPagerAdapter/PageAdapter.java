@@ -12,7 +12,7 @@ public class PageAdapter extends FragmentPagerAdapter {
     private int numOfTabs;
 
     public PageAdapter(FragmentManager fm, int numOfTabs) {
-        super(fm);
+        super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
         this.numOfTabs = numOfTabs;
     }
 

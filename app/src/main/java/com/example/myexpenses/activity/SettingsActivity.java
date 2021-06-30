@@ -2,23 +2,25 @@ package com.example.myexpenses.activity;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.SQLException;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.NavUtils;
 
 import com.example.myexpenses.R;
 import com.example.myexpenses.model.Transaction;
-import com.example.myexpenses.repository.TransactionRepository;
 import com.example.myexpenses.other.TransactionsProvider;
+import com.example.myexpenses.repository.TransactionRepository;
 
 import java.util.List;
 
@@ -27,7 +29,10 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
     private CheckBox activatePresentingIncomes;
     private CheckBox activatePieChartAnimation;
     private CheckBox activatePresentingTotalValues;
+    private CheckBox activateUsingCategoryNameIfNoteIsEmpty;
     private SharedPreferences sharedPreferences;
+
+    private boolean shouldUpdateListTransactions = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,9 +46,10 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
 
         sharedPreferences = this.getSharedPreferences("SharedPreferences", MODE_PRIVATE);
         //default value if it not have been initialized yet
-        boolean sharedPrefShouldShowIncomesBarCharts = sharedPreferences.getBoolean("Should show incomes bar charts", true);
-        boolean sharedPrefShouldShowPieChartAnimation = sharedPreferences.getBoolean("Should show pie chart animation", true);
-        boolean sharedPrefShouldPresentTotalValues = sharedPreferences.getBoolean("Should present total values on pie chart", false);
+        boolean sharedPrefShouldShowIncomesBarCharts = sharedPreferences.getBoolean("sharedPrefShouldShowIncomesBarCharts", true);
+        boolean sharedPrefShouldShowPieChartAnimation = sharedPreferences.getBoolean("sharedPrefShouldShowPieChartAnimation", true);
+        boolean sharedPrefShouldPresentTotalValues = sharedPreferences.getBoolean("sharedPrefShouldPresentTotalValues", false);
+        boolean sharedPrefShouldUseCategoryNameIfNoteIsEmpty = sharedPreferences.getBoolean("sharedPrefShouldUseCategoryNameIfNoteIsEmpty", true);
 
         activatePresentingIncomes = findViewById(R.id.activatePresentingIncomes);
         activatePresentingIncomes.setChecked(sharedPrefShouldShowIncomesBarCharts);
@@ -56,6 +62,10 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         activatePresentingTotalValues = findViewById(R.id.activatePresentingTotalValues);
         activatePresentingTotalValues.setChecked(sharedPrefShouldPresentTotalValues);
         activatePresentingTotalValues.setOnClickListener(this);
+
+        activateUsingCategoryNameIfNoteIsEmpty = findViewById(R.id.activateUsingCategoryNameIfNoteIsEmpty);
+        activateUsingCategoryNameIfNoteIsEmpty.setChecked(sharedPrefShouldUseCategoryNameIfNoteIsEmpty);
+        activateUsingCategoryNameIfNoteIsEmpty.setOnClickListener(this);
 
         Button generateRandomData = findViewById(R.id.generateRandomData);
         generateRandomData.setOnClickListener(this);
@@ -70,21 +80,28 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
             case R.id.activatePresentingIncomes: {
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 boolean checkboxState = activatePresentingIncomes.isChecked();
-                editor.putBoolean("Should show incomes bar charts", checkboxState);
+                editor.putBoolean("sharedPrefShouldShowIncomesBarCharts", checkboxState);
                 editor.apply();
                 break;
             }
             case R.id.activatePieChartAnimation: {
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 boolean checkboxState = activatePieChartAnimation.isChecked();
-                editor.putBoolean("Should show pie chart animation", checkboxState);
+                editor.putBoolean("sharedPrefShouldShowPieChartAnimation", checkboxState);
                 editor.apply();
                 break;
             }
             case R.id.activatePresentingTotalValues: {
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 boolean checkboxState = activatePresentingTotalValues.isChecked();
-                editor.putBoolean("Should present total values on pie chart", checkboxState);
+                editor.putBoolean("sharedPrefShouldPresentTotalValues", checkboxState);
+                editor.apply();
+                break;
+            }
+            case R.id.activateUsingCategoryNameIfNoteIsEmpty: {
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                boolean checkBoxState = activateUsingCategoryNameIfNoteIsEmpty.isChecked();
+                editor.putBoolean("sharedPrefShouldUseCategoryNameIfNoteIsEmpty", checkBoxState);
                 editor.apply();
                 break;
             }
@@ -147,6 +164,7 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
             }
             if (success) {
                 Toast.makeText(SettingsActivity.this, "Data successfully removed", Toast.LENGTH_SHORT).show();
+                shouldUpdateListTransactions = true;
             } else {
                 Toast.makeText(SettingsActivity.this, "Error during deleting", Toast.LENGTH_SHORT).show();
             }
@@ -185,6 +203,7 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
             }
             if (success) {
                 Toast.makeText(SettingsActivity.this, "Random transactions created", Toast.LENGTH_SHORT).show();
+                shouldUpdateListTransactions = true;
             } else {
                 Toast.makeText(SettingsActivity.this, "Error during creation", Toast.LENGTH_SHORT).show();
             }
@@ -192,10 +211,26 @@ public class SettingsActivity extends AppCompatActivity implements View.OnClickL
         }
     }
 
-    //prevent left checked icon on navigation drawer and also clear filters f.e.
+
     @Override
     public void onBackPressed() {
-        //super.onBackPressed();
-        NavUtils.navigateUpFromSameTask(this);
+        Intent returnIntent = new Intent();
+        if (shouldUpdateListTransactions) {
+            returnIntent.putExtra("shouldUpdateListOfTransactions", true);
+        } else {
+            returnIntent.putExtra("shouldUpdateListOfTransactions", false);
+        }
+        setResult(RESULT_OK, returnIntent);
+        super.onBackPressed();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                onBackPressed();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

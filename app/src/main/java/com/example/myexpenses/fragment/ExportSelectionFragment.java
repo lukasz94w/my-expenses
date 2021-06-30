@@ -3,14 +3,10 @@ package com.example.myexpenses.fragment;
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
-import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,26 +20,19 @@ import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.myexpenses.R;
 import com.example.myexpenses.repository.TransactionRepository;
-import com.opencsv.CSVWriter;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
-import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
-import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
-import static android.os.Build.VERSION.SDK_INT;
+import static android.app.Activity.RESULT_OK;
 import static com.example.myexpenses.other.CurrencyConverter.getValueInCurrency;
 
 public class ExportSelectionFragment extends Fragment implements View.OnClickListener, AdapterView.OnItemSelectedListener, RadioGroup.OnCheckedChangeListener {
@@ -55,8 +44,10 @@ public class ExportSelectionFragment extends Fragment implements View.OnClickLis
     private ImageView transactionCategoryImageToBeSaved;
     private RadioGroup chooseTransactionTypeToBeSaved;
 
-    private final int REQUEST_CODE_FOR_PERMISSION_ANDROID_BELOW_11_VERSION = 10;
-    private final int REQUEST_CODE_FOR_PERMISSION_ANDROID_11_VERSION = 11;
+    private final int REQUEST_CODE_CREATE_FILE = 100;
+
+    public ExportSelectionFragment() {
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -64,9 +55,11 @@ public class ExportSelectionFragment extends Fragment implements View.OnClickLis
 
         //initialize ranges
         Calendar calendar = Calendar.getInstance();
+        //1st day of actual year
         dayDateFrom = 1;
         monthDateFrom = 0; //months are indexed from 0
         yearDateFrom = calendar.get(Calendar.YEAR);
+        //today
         dayDateTo = calendar.get(Calendar.DAY_OF_MONTH);
         monthDateTo = calendar.get(Calendar.MONTH); //months are indexed from 0
         yearDateTo = calendar.get(Calendar.YEAR);
@@ -105,11 +98,13 @@ public class ExportSelectionFragment extends Fragment implements View.OnClickLis
         switch (v.getId()) {
             case R.id.saveToFile: {
 
-                if (checkPermission()) {
-                    new ExportSelectedTransactionsCSVTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                } else {
-                    requestPermission();
-                }
+                Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+                intent.addCategory(Intent.CATEGORY_OPENABLE);
+                intent.setType("text/csv");
+                String fileName = getFileName();
+                intent.putExtra(Intent.EXTRA_TITLE, fileName);
+                startActivityForResult(intent, REQUEST_CODE_CREATE_FILE);
+
                 break;
             }
 
@@ -144,68 +139,22 @@ public class ExportSelectionFragment extends Fragment implements View.OnClickLis
         }
     }
 
-    private boolean checkPermission() {
-        //android == 11
-        if (SDK_INT >= Build.VERSION_CODES.R) {
-            return Environment.isExternalStorageManager();
-        }
-        //android < 11
-        else {
-            int resultForReadExternalStorage = ContextCompat.checkSelfPermission(getContext(), READ_EXTERNAL_STORAGE);
-            int resultForWriteExternalStorage = ContextCompat.checkSelfPermission(getContext(), WRITE_EXTERNAL_STORAGE);
-            return resultForReadExternalStorage == PackageManager.PERMISSION_GRANTED && resultForWriteExternalStorage == PackageManager.PERMISSION_GRANTED;
-        }
-    }
-
-    private void requestPermission() {
-        //android == 11
-        if (SDK_INT >= Build.VERSION_CODES.R) {
-            try {
-                Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
-                intent.addCategory("android.intent.category.DEFAULT");
-                intent.setData(Uri.parse(String.format("package:%s", getActivity().getPackageName())));
-                startActivityForResult(intent, REQUEST_CODE_FOR_PERMISSION_ANDROID_11_VERSION);
-            } catch (Exception e) {
-                Intent intent = new Intent();
-                intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-                startActivityForResult(intent, REQUEST_CODE_FOR_PERMISSION_ANDROID_11_VERSION);
-            }
-        } else {
-            //android < 11
-            ActivityCompat.requestPermissions(getActivity(), new String[]{WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_FOR_PERMISSION_ANDROID_BELOW_11_VERSION);
-        }
-    }
-
-    //handle permission result on android < 11
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == REQUEST_CODE_FOR_PERMISSION_ANDROID_BELOW_11_VERSION) {
-            if (grantResults.length > 0) {
-
-                boolean READ_EXTERNAL_STORAGE = grantResults[0] == PackageManager.PERMISSION_GRANTED;
-                boolean WRITE_EXTERNAL_STORAGE = grantResults[1] == PackageManager.PERMISSION_GRANTED;
-
-                if (READ_EXTERNAL_STORAGE && WRITE_EXTERNAL_STORAGE) {
-                    //permission granted
-                    new ExportSelectedTransactionsCSVTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                } else {
-                    Toast.makeText(getContext(), "Allow permission for storage access", Toast.LENGTH_SHORT).show();
-                }
-            }
-        }
-    }
-
-    //handle permission result on android == 11
     @Override
     public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE_FOR_PERMISSION_ANDROID_11_VERSION) {
-            if (SDK_INT >= Build.VERSION_CODES.R) {
-                if (Environment.isExternalStorageManager()) {
-                    //permission granted
-                    new ExportSelectedTransactionsCSVTask().executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-                } else {
-                    Toast.makeText(getContext(), "Allow permission for storage access", Toast.LENGTH_SHORT).show();
+        switch (requestCode) {
+            case REQUEST_CODE_CREATE_FILE: {
+                if (resultCode == RESULT_OK) {
+
+                    if(data != null) {
+                        //prepare setup data
+                        Uri uri = data.getData();
+                        int transactionType = getTransactionType();
+                        String transactionCategory = getTransactionCategory();
+                        DateRange dateRange = getDateRange();
+
+                        new ExportSelectedTransactionsCSVTask().execute(new Setup(uri, transactionType, transactionCategory, dateRange));
+                    }
                 }
             }
         }
@@ -247,110 +196,82 @@ public class ExportSelectionFragment extends Fragment implements View.OnClickLis
         }
     }
 
-    private class ExportSelectedTransactionsCSVTask extends AsyncTask<String, Void, Boolean> {
+    private class ExportSelectedTransactionsCSVTask extends AsyncTask<Setup, Void, Boolean> {
 
         private final ProgressDialog dialog = new ProgressDialog(getContext());
         private TransactionRepository transactionRepository;
-        private int dayDateFrom, monthDateFrom, yearDateFrom, dayDateTo, monthDateTo, yearDateTo;
-        private int transactionType;
-        private String transactionCategory;
-        private String fileName;
 
         @Override
         protected void onPreExecute() {
             this.dialog.setMessage("Saving file...");
             this.dialog.show();
             transactionRepository = new TransactionRepository(getContext());
-            CheckBox activateDateSelection = getView().findViewById(R.id.activateDateSelection);
-            CheckBox activateTransactionTypeSelection = getView().findViewById(R.id.activateTransactionTypeSelection);
-            CheckBox activateTransactionCategorySelection = getView().findViewById(R.id.activateTransactionCategorySelection);
-
-            if (activateDateSelection.isChecked()) {
-                this.dayDateFrom = ExportSelectionFragment.this.dayDateFrom;
-                this.monthDateFrom = ExportSelectionFragment.this.monthDateFrom;
-                this.yearDateFrom = ExportSelectionFragment.this.yearDateFrom;
-                this.dayDateTo = ExportSelectionFragment.this.dayDateTo;
-                this.monthDateTo = ExportSelectionFragment.this.monthDateTo;
-                this.yearDateTo = ExportSelectionFragment.this.yearDateTo;
-            }
-
-            transactionType = 2;
-            transactionCategory = "";
-            fileName = getFileName(activateDateSelection.isChecked(), dayDateFrom, monthDateFrom, yearDateFrom, dayDateTo, monthDateTo, yearDateTo);
-
-            if (activateTransactionTypeSelection.isChecked()) {
-                int idOfCheckedRadiobutton = chooseTransactionTypeToBeSaved.getCheckedRadioButtonId();
-                RadioButton checkedRadiobutton = getView().findViewById(idOfCheckedRadiobutton);
-                String transactionTypeName = checkedRadiobutton.getText().toString();
-                if (transactionTypeName.equals("Expenses")) {
-                    transactionType = 1;
-                } else {
-                    transactionType = 0;
-                }
-            }
-
-            if (activateTransactionCategorySelection.isChecked()) {
-                transactionCategory = chooseTransactionCategoryToBeSaved.getSelectedItem().toString();
-            }
         }
 
-        protected Boolean doInBackground(final String... args) {
-
-            File exportDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "");
-            if (!exportDir.exists()) {
-                exportDir.mkdirs();
-            }
-
-            File file = new File(exportDir, fileName);
+        protected Boolean doInBackground(final Setup... setups) {
             try {
-                file.createNewFile();
-                CSVWriter csvWrite = new CSVWriter(new FileWriter(file), ';', '\0', '\0', "\n");
+                OutputStream outputStream = getActivity().getContentResolver().openOutputStream(setups[0].uri);
+
                 Cursor curCSV = transactionRepository.rawWithFilter(
-                        dayDateFrom,
-                        monthDateFrom,
-                        yearDateFrom,
-                        dayDateTo,
-                        monthDateTo,
-                        yearDateTo,
-                        transactionType,
-                        transactionCategory);
+                        setups[0].dateRange.dayDateFrom,
+                        setups[0].dateRange.monthDateFrom,
+                        setups[0].dateRange.yearDateFrom,
+                        setups[0].dateRange.dayDateTo,
+                        setups[0].dateRange.monthDateTo,
+                        setups[0].dateRange.yearDateTo,
+                        setups[0].transactionType,
+                        setups[0].transactionCategory);
 
-                csvWrite.writeNext(curCSV.getColumnNames());
+                //write column names
+                String[] columnNames = curCSV.getColumnNames();
+                String COLUMN_SEPARATOR = ";";
+                for (int i = 0; i < columnNames.length; i++) {
+                    outputStream.write((columnNames[i] + COLUMN_SEPARATOR).getBytes());
+                }
+
+                //write column data
+                int lineNumber = 0;
                 while (curCSV.moveToNext()) {
-                    String[] mySecondStringArray = new String[curCSV.getColumnNames().length];
-                    //export all columns from db
+                    lineNumber++;
+                    String LINE_SEPARATOR = "\n";
+                    outputStream.write(LINE_SEPARATOR.getBytes());
                     for (int i = 0; i < curCSV.getColumnNames().length; i++) {
-
-                        //type, convert from 0/1 to Expense/Income
+                        //transaction id
+                        if (i == 0) {
+                            outputStream.write((lineNumber + COLUMN_SEPARATOR).getBytes());
+                        }
+                        //transaction type, convert from 0/1 to Expense/Income
                         if (i == 1) {
                             int transactionType = Integer.parseInt(curCSV.getString(i));
                             if (transactionType == 1) {
-                                mySecondStringArray[i] = "Expense";
+                                outputStream.write(("Expense" + COLUMN_SEPARATOR).getBytes());
                             } else {
-                                mySecondStringArray[i] = "Income";
+                                outputStream.write(("Income" + COLUMN_SEPARATOR).getBytes());
                             }
                         }
-                        //amount, convert from int (subunit) to float (currency)
+                        //transaction name
+                        if (i == 2) {
+                            outputStream.write((curCSV.getString(i) + COLUMN_SEPARATOR).getBytes());
+                        }
+                        //transaction amount, convert from int (subunit) to float (currency)
                         if (i == 3) {
                             int transactionAmount = Integer.parseInt(curCSV.getString(i));
-                            mySecondStringArray[i] = String.valueOf(getValueInCurrency(transactionAmount));
+                            outputStream.write(((getValueInCurrency(transactionAmount) + COLUMN_SEPARATOR).getBytes()));
                         }
-                        //date, convert from long (unix) to dd.MM.yyyy format
+                        //transaction category
+                        if (i == 4) {
+                            outputStream.write((curCSV.getString(i) + COLUMN_SEPARATOR).getBytes());
+                        }
+                        //transaction date, convert from long (unix) to dd.MM.yyyy format
                         if (i == 5) {
                             Date dateOfTransaction = new Date(Long.parseLong(curCSV.getString(i)));
                             SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy");
                             String dateAsString = formatter.format(dateOfTransaction);
-                            mySecondStringArray[i] = dateAsString;
-
-                        } else if (i == 0 || i == 2 || i == 4) {
-                            mySecondStringArray[i] = curCSV.getString(i);
+                            outputStream.write((dateAsString + COLUMN_SEPARATOR).getBytes());
                         }
                     }
-                    csvWrite.writeNext(mySecondStringArray);
                 }
-
-                csvWrite.close();
-                curCSV.close();
+                outputStream.close();
                 return true;
             } catch (IOException e) {
                 return false;
@@ -384,12 +305,17 @@ public class ExportSelectionFragment extends Fragment implements View.OnClickLis
         return dd + "." + MM + "." + yyyy;
     }
 
-    private String getFileName(boolean activateDateSelection, int dayDateFrom, int monthDateFrom, int yearDateFrom, int dayDateTo, int monthDateTo, int yearDateTo) {
-        if (activateDateSelection) {
+    private String getFileName() {
+
+        CheckBox activateDateSelection = getView().findViewById(R.id.activateDateSelection);
+
+        if (activateDateSelection.isChecked()) {
             String dayDateFromAsString = String.valueOf(dayDateFrom);
             String monthDateFromAsString = String.valueOf(monthDateFrom + 1);
             String dayDateToAsString = String.valueOf(dayDateTo);
             String monthDateToAsString = String.valueOf(monthDateTo + 1);
+            String yearDateFromAsString = String.valueOf(yearDateFrom);
+            String yearDateToAsString = String.valueOf(yearDateTo);
             if (dayDateFrom < 10) {
                 dayDateFromAsString = "0" + dayDateFromAsString;
             }
@@ -402,9 +328,87 @@ public class ExportSelectionFragment extends Fragment implements View.OnClickLis
             if (monthDateTo < 9) {
                 monthDateToAsString = "0" + monthDateToAsString;
             }
-            return "MyFinances_" + dayDateFromAsString + "." + monthDateFromAsString + "." + yearDateFrom + "-" + dayDateToAsString + "." + monthDateToAsString + "." + yearDateTo + ".csv";
+            return "MyFinances_" + dayDateFromAsString + "." + monthDateFromAsString + "." + yearDateFromAsString + "-" + dayDateToAsString + "." + monthDateToAsString + "." + yearDateToAsString + ".csv";
         } else
             return "MyFinances.csv";
     }
 
+    private int getTransactionType() {
+
+        CheckBox activateTransactionTypeSelection = getView().findViewById(R.id.activateTransactionTypeSelection);
+        int transactionType = 2;
+
+        if (activateTransactionTypeSelection.isChecked()) {
+            int idOfCheckedRadiobutton = chooseTransactionTypeToBeSaved.getCheckedRadioButtonId();
+            RadioButton checkedRadiobutton = getView().findViewById(idOfCheckedRadiobutton);
+            String transactionTypeName = checkedRadiobutton.getText().toString();
+            if (transactionTypeName.equals("Expenses")) {
+                transactionType = 1;
+            } else {
+                transactionType = 0;
+            }
+        }
+
+        return transactionType;
+    }
+
+    private String getTransactionCategory() {
+
+        CheckBox activateTransactionCategorySelection = getView().findViewById(R.id.activateTransactionCategorySelection);
+
+        String transactionCategory = "";
+
+        if (activateTransactionCategorySelection.isChecked()) {
+            transactionCategory = chooseTransactionCategoryToBeSaved.getSelectedItem().toString();
+        }
+
+        return transactionCategory;
+    }
+
+    private DateRange getDateRange() {
+        CheckBox activateDateSelection = getView().findViewById(R.id.activateDateSelection);
+
+        DateRange dateRange;
+
+        if (activateDateSelection.isChecked()) {
+            dateRange = new DateRange(dayDateFrom, monthDateFrom, yearDateFrom, dayDateTo, monthDateTo, yearDateTo);
+        }
+        else {
+            dateRange = new DateRange(1, 1, 1900, 31, 12, 2100);
+        }
+
+        return dateRange;
+    }
+
+    private static class Setup {
+        private final Uri uri;
+        private final int transactionType;
+        private final String transactionCategory;
+        private final DateRange dateRange;
+
+        public Setup(Uri uri, int transactionType, String transactionCategory, DateRange dateRange) {
+            this.uri = uri;
+            this.transactionType = transactionType;
+            this.transactionCategory = transactionCategory;
+            this.dateRange = dateRange;
+        }
+    }
+
+    private static class DateRange {
+        private final int dayDateFrom;
+        private final int monthDateFrom;
+        private final int yearDateFrom;
+        private final int dayDateTo;
+        private final int monthDateTo;
+        private final int yearDateTo;
+
+        private DateRange(int dayDateFrom, int monthDateFrom, int yearDateFrom, int dayDateTo, int monthDateTo, int yearDateTo) {
+            this.dayDateFrom = dayDateFrom;
+            this.monthDateFrom = monthDateFrom;
+            this.yearDateFrom = yearDateFrom;
+            this.dayDateTo = dayDateTo;
+            this.monthDateTo = monthDateTo;
+            this.yearDateTo = yearDateTo;
+        }
+    }
 }

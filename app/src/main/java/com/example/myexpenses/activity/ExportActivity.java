@@ -1,15 +1,15 @@
 package com.example.myexpenses.activity;
 
 import android.os.Bundle;
+import android.view.MenuItem;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.NavUtils;
 import androidx.viewpager.widget.ViewPager;
 
 import com.example.myexpenses.R;
 import com.example.myexpenses.fragmentPagerAdapter.PageAdapter;
-import com.google.android.material.tabs.TabItem;
 import com.google.android.material.tabs.TabLayout;
 
 public class ExportActivity extends AppCompatActivity {
@@ -25,7 +25,7 @@ public class ExportActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         TabLayout tabLayout = findViewById(R.id.tabLayout);
-        ViewPager viewPager = findViewById(R.id.viewPager);
+        ViewPager viewPager = findViewById(R.id.viewPagerExport);
 
         PageAdapter pageAdapter = new PageAdapter(getSupportFragmentManager(), tabLayout.getTabCount());
         viewPager.setAdapter(pageAdapter);
@@ -49,10 +49,12 @@ public class ExportActivity extends AppCompatActivity {
         });
     }
 
-    //prevent left checked icon on navigation drawer and also clear filters f.e.
     @Override
-    public void onBackPressed() {
-        //super.onBackPressed();
-        NavUtils.navigateUpFromSameTask(this);
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            super.onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

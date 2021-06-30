@@ -41,13 +41,25 @@
             android:id="@+id/activatePresentingIncomes"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="55dp"
+            android:layout_below="@id/activatePieChartAnimation"
+            android:layout_marginStart="54dp"
             android:layout_marginTop="24dp"
             android:buttonTint="@color/check_box_color"
             android:scaleX="1.3"
             android:scaleY="1.3"
-            android:layout_below="@id/activatePieChartAnimation"
             android:text="@string/settings_present_incomes" />
+
+        <CheckBox
+            android:id="@+id/activateUsingCategoryNameIfNoteIsEmpty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="59dp"
+            android:layout_marginTop="24dp"
+            android:buttonTint="@color/check_box_color"
+            android:scaleX="1.3"
+            android:scaleY="1.3"
+            android:layout_below="@id/activatePresentingIncomes"
+            android:text="@string/settings_empty_note" />
 
         <CheckBox
             android:id="@+id/activatePresentingTotalValues"
@@ -76,7 +88,7 @@
             android:id="@+id/separator"
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_below="@id/activatePresentingIncomes"
+            android:layout_below="@id/activateUsingCategoryNameIfNoteIsEmpty"
             android:layout_marginLeft="7dp"
             android:layout_marginTop="24dp"
             android:layout_marginRight="7dp"

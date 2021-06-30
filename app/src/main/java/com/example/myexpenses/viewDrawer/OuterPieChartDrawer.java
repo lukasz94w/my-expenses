@@ -29,17 +29,15 @@ public class OuterPieChartDrawer {
     private final Context context;
     private final List<Transaction> monthTransactions;
     private final int idOfOuterPieChart;
-    private final boolean sharedPrefShouldShowPieChartAnimation;
     private final boolean sharedPrefShouldPresentTotalValues;
 
     private PieChart pieChart;
 
     @RequiresApi(api = Build.VERSION_CODES.N)
-    public OuterPieChartDrawer(Context context, List<Transaction> transactionList, int idOfOuterPieChart, boolean sharedPrefShouldShowPieChartAnimation, boolean sharedPrefShouldPresentTotalValues) {
+    public OuterPieChartDrawer(Context context, List<Transaction> transactionList, int idOfOuterPieChart, boolean sharedPrefShouldPresentTotalValues) {
         this.context = context;
         this.monthTransactions = transactionList;
         this.idOfOuterPieChart = idOfOuterPieChart;
-        this.sharedPrefShouldShowPieChartAnimation = sharedPrefShouldShowPieChartAnimation;
         this.sharedPrefShouldPresentTotalValues = sharedPrefShouldPresentTotalValues;
 
         configurePieChartAppearance();
@@ -94,9 +92,6 @@ public class OuterPieChartDrawer {
         pieData.setValueTextColor(Color.DKGRAY);
         pieDataSet.setColors(transactionColor);
         pieChart.setData(pieData);
-        if (sharedPrefShouldShowPieChartAnimation) {
-            pieChart.animateXY(1000, 1000);
-        }
         pieChart.invalidate();
     }
 
