@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/one"
+        android:id="@+id/dateDesc"
         android:title="@string/order_by_date_desc" />
     <item
-        android:id="@+id/two"
+        android:id="@+id/dateAsc"
         android:title="@string/order_by_date_asc"/>
     <item
-        android:id="@+id/three"
+        android:id="@+id/valueDesc"
         android:title="@string/order_by_value_desc"/>
     <item
-        android:id="@+id/four"
+        android:id="@+id/valueAsc"
         android:title="@string/order_by_value_asc"/>
     <item
-        android:id="@+id/five"
+        android:id="@+id/categoryDesc"
         android:title="@string/order_by_category_desc"/>
     <item
-        android:id="@+id/six"
+        android:id="@+id/categoryAsc"
         android:title="@string/order_by_category_asc"/>
 </menu>

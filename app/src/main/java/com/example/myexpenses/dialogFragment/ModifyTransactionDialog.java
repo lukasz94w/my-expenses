@@ -1,9 +1,10 @@
 package com.example.myexpenses.dialogFragment;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
-import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.text.InputFilter;
@@ -31,15 +32,19 @@ import androidx.fragment.app.DialogFragment;
 import com.example.myexpenses.R;
 import com.example.myexpenses.inputFilter.DecimalDigitsInputFilter;
 import com.example.myexpenses.model.Transaction;
+import com.example.myexpenses.other.ModifyTransactionDialogCallbackData;
 import com.example.myexpenses.repository.TransactionRepository;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
+import static android.content.Context.MODE_PRIVATE;
 import static com.example.myexpenses.other.CurrencyConverter.getValueInCurrency;
 import static com.example.myexpenses.other.CurrencyConverter.getValueInSubUnit;
 
@@ -66,21 +71,18 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
 
     private Transaction selectedTransaction;
 
-    private ModifyTransactionDialog.ModifyTransactionDialogCommunicator modifyTransactionDialogCommunicator;
+    private ModifyTransactionDialogCallback modifyTransactionDialogCallback;
     private TransactionRepository transactionRepository;
 
-    private final int TRANSACTION_DELETED = 1;
-    private final int TRANSACTION_UPDATED = 2;
-    private final int TRANSACTION_ADDED_NEEDED_UPDATE_LIST = 3;
-    private final int TRANSACTION_ADDED_NO_NEED_TO_UPDATE_LIST = 4;
+    private boolean sharedPrefShouldUseCategoryNameIfNoteIsEmpty;
 
     @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
+    public void onAttach(@NonNull Activity activity) {
+        super.onAttach(activity);
         try {
-            modifyTransactionDialogCommunicator = (ModifyTransactionDialog.ModifyTransactionDialogCommunicator) getTargetFragment();
+            modifyTransactionDialogCallback = (ModifyTransactionDialogCallback) activity;
         } catch (ClassCastException e) {
-            throw new ClassCastException("Calling Fragment must implement ModifyTransactionDialog.ModifyTransactionDialogCommunicator");
+            throw new ClassCastException("Calling Activity must implement ModifyTransactionDialog.ModifyTransactionDialogCallback");
         }
     }
 
@@ -101,6 +103,10 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
         monthlyLimit = getArguments().getInt("monthlyLimit");
         actualDate = new Date();
         actualDate.setTime(getArguments().getLong("actualDate"));
+
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("SharedPreferences", MODE_PRIVATE);
+        //default value if it wasn't initialized yet
+        sharedPrefShouldUseCategoryNameIfNoteIsEmpty = sharedPreferences.getBoolean("sharedPrefShouldUseCategoryNameIfNoteIsEmpty", true);
     }
 
     @Nullable
@@ -181,6 +187,7 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
 
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
@@ -276,7 +283,7 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
                 builder.setMessage(R.string.delete_transaction_message);
                 builder.setPositiveButton(R.string.delete_transaction_yes_button, (dialog, which) -> {
                     transactionRepository.deleteTransaction(selectedTransaction.getId());
-                    modifyTransactionDialogCommunicator.retrieveDataFromModifyTransactionDialog(TRANSACTION_DELETED);
+                    modifyTransactionDialogCallback.modifyTransactionDialogCallback(new ModifyTransactionDialogCallbackData("TRANSACTION_DELETED", 0)); //month offset doesn't matter
                     dismiss();
                 });
                 builder.setNegativeButton(R.string.delete_transaction_no_button, (dialog, which) -> {
@@ -291,10 +298,13 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
 
                 int transactionId = selectedTransaction.getId();
 
-                //check if name field is empty, if so we set it as category name
                 String transactionName = chooseTransactionName.getText().toString();
-                if (transactionName.equals("")) {
-                    transactionName = chooseTransactionCategory.getSelectedItem().toString();
+
+                //check if name field is empty, if so we set it as category name
+                if (sharedPrefShouldUseCategoryNameIfNoteIsEmpty) {
+                    if (transactionName.equals("")) {
+                        transactionName = chooseTransactionCategory.getSelectedItem().toString();
+                    }
                 }
 
                 int transactionAmount;
@@ -335,10 +345,16 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
                 transactionToSave.setDate(transactionDate);
 
                 Calendar calendar = Calendar.getInstance();
+
                 calendar.setTime(transactionDate);
                 int monthOfUpdatedTransaction = calendar.get(Calendar.MONTH);
                 int yearOfUpdatedTransaction = calendar.get(Calendar.YEAR);
-                double primaryValueOfUpdatedTransaction = selectedTransaction.getAmount();
+
+                Date primaryDateOfUpdatedTransaction = selectedTransaction.getDate();
+                calendar.setTime(primaryDateOfUpdatedTransaction);
+                int primaryMonthOfUpdatedTransaction = calendar.get(Calendar.MONTH);
+                int primaryYearOfUpdatedTransaction = calendar.get(Calendar.YEAR);
+                int primaryValueOfUpdatedTransaction = selectedTransaction.getAmount();
 
                 if (transactionType == 1) {
                     boolean isDailyLimitExceeded = false;
@@ -346,9 +362,16 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
                         if (Math.abs(transactionRepository.getSumOfDailyExpenses(actualDay, monthOfUpdatedTransaction, yearOfUpdatedTransaction)) - Math.abs(primaryValueOfUpdatedTransaction) + Math.abs(transactionAmount) > dailyLimit)
                             isDailyLimitExceeded = true;
                     }
+
                     boolean isMonthlyLimitExceeded = false;
-                    if (Math.abs(transactionRepository.getSumOfMonthlyExpenses(monthOfUpdatedTransaction, yearOfUpdatedTransaction)) - Math.abs(primaryValueOfUpdatedTransaction) + Math.abs(transactionAmount) > monthlyLimit) {
-                        isMonthlyLimitExceeded = true;
+                    if (monthOfUpdatedTransaction == primaryMonthOfUpdatedTransaction && yearOfUpdatedTransaction == primaryYearOfUpdatedTransaction) {
+                        if (Math.abs(transactionRepository.getSumOfMonthlyExpenses(monthOfUpdatedTransaction, yearOfUpdatedTransaction)) - Math.abs(primaryValueOfUpdatedTransaction) + Math.abs(transactionAmount) > monthlyLimit) {
+                            isMonthlyLimitExceeded = true;
+                        }
+                    } else {
+                        if (Math.abs(transactionRepository.getSumOfMonthlyExpenses(monthOfUpdatedTransaction, yearOfUpdatedTransaction)) + Math.abs(transactionAmount) > monthlyLimit) {
+                            isMonthlyLimitExceeded = true;
+                        }
                     }
 
                     if (isDailyLimitExceeded || isMonthlyLimitExceeded) {
@@ -363,7 +386,12 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
                         }
                         builder.setPositiveButton(R.string.limit_yes_button, (dialog, which) -> {
                             transactionRepository.updateTransaction(transactionToSave);
-                            modifyTransactionDialogCommunicator.retrieveDataFromModifyTransactionDialog(TRANSACTION_UPDATED);
+                            //check if we need to actualise current seen list of transactions and total sum
+                            if ((monthOfUpdatedTransaction == currentChosenMonth) && (yearOfUpdatedTransaction == currentChosenYear)) {
+                                modifyTransactionDialogCallback.modifyTransactionDialogCallback(new ModifyTransactionDialogCallbackData("TRANSACTION_UPDATED", 0));
+                            } else {
+                                modifyTransactionDialogCallback.modifyTransactionDialogCallback(new ModifyTransactionDialogCallbackData("TRANSACTION_UPDATED", getMonthOffset(monthOfUpdatedTransaction, yearOfUpdatedTransaction)));
+                            }
                             dismiss();
                         });
 
@@ -376,7 +404,12 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
                     }
                 }
                 transactionRepository.updateTransaction(transactionToSave);
-                modifyTransactionDialogCommunicator.retrieveDataFromModifyTransactionDialog(TRANSACTION_UPDATED);
+                //check if we need to actualise current seen list of transactions and total sum
+                if ((monthOfUpdatedTransaction == currentChosenMonth) && (yearOfUpdatedTransaction == currentChosenYear)) {
+                    modifyTransactionDialogCallback.modifyTransactionDialogCallback(new ModifyTransactionDialogCallbackData("TRANSACTION_UPDATED", 0));
+                } else {
+                    modifyTransactionDialogCallback.modifyTransactionDialogCallback(new ModifyTransactionDialogCallbackData("TRANSACTION_UPDATED", getMonthOffset(monthOfUpdatedTransaction, yearOfUpdatedTransaction)));
+                }
                 dismiss();
                 break;
             }
@@ -385,10 +418,13 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
 
                 Transaction transactionToSave = new Transaction();
 
-                //check if name field is empty, if so we set it as category name
                 String transactionName = chooseTransactionName.getText().toString();
-                if (transactionName.equals("")) {
-                    transactionName = chooseTransactionCategory.getSelectedItem().toString();
+
+                //check if name field is empty, if so we set it as category name
+                if (sharedPrefShouldUseCategoryNameIfNoteIsEmpty) {
+                    if (transactionName.equals("")) {
+                        transactionName = chooseTransactionCategory.getSelectedItem().toString();
+                    }
                 }
 
                 int transactionAmount;
@@ -455,9 +491,11 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
                         }
                         builder.setPositiveButton(R.string.limit_yes_button, (dialog, which) -> {
                             transactionRepository.create(transactionToSave);
-                            //check if we need to actualise current seen list of transactions and total sum
+                            //check if we the transaction is in the current seen month
                             if ((monthOfNewTransaction == currentChosenMonth) && (yearOfNewTransaction == currentChosenYear)) {
-                                modifyTransactionDialogCommunicator.retrieveDataFromModifyTransactionDialog(TRANSACTION_ADDED_NEEDED_UPDATE_LIST);
+                                modifyTransactionDialogCallback.modifyTransactionDialogCallback(new ModifyTransactionDialogCallbackData("TRANSACTION_ADDED", 0));
+                            } else {
+                                modifyTransactionDialogCallback.modifyTransactionDialogCallback(new ModifyTransactionDialogCallbackData("TRANSACTION_ADDED", getMonthOffset(monthOfNewTransaction, yearOfNewTransaction)));
                             }
                             dismiss();
                         });
@@ -470,11 +508,12 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
                     }
                 }
                 transactionRepository.create(transactionToSave);
-                //check if we need to actualise current seen list of transactions and total sum
+                //check if we the transaction is in the current seen month
                 if ((monthOfNewTransaction == currentChosenMonth) && (yearOfNewTransaction == currentChosenYear)) {
-                    modifyTransactionDialogCommunicator.retrieveDataFromModifyTransactionDialog(TRANSACTION_ADDED_NEEDED_UPDATE_LIST);
+                    modifyTransactionDialogCallback.modifyTransactionDialogCallback(new ModifyTransactionDialogCallbackData("TRANSACTION_ADDED", 0));
+                } else {
+                    modifyTransactionDialogCallback.modifyTransactionDialogCallback(new ModifyTransactionDialogCallbackData("TRANSACTION_ADDED", getMonthOffset(monthOfNewTransaction, yearOfNewTransaction)));
                 }
-                modifyTransactionDialogCommunicator.retrieveDataFromModifyTransactionDialog(TRANSACTION_ADDED_NO_NEED_TO_UPDATE_LIST);
                 dismiss();
                 break;
             }
@@ -482,6 +521,17 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
             default:
                 break;
         }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private int getMonthOffset(int monthOfTransaction, int yearOfTransaction) {
+
+        LocalDate newTransactionDate = LocalDate.of(yearOfTransaction, monthOfTransaction, 1);
+        LocalDate currentChosenMonthInList = LocalDate.of(currentChosenYear, currentChosenMonth, 1);
+
+        Period diff = Period.between(newTransactionDate, currentChosenMonthInList);
+
+        return diff.getMonths();
     }
 
     @Override
@@ -516,9 +566,8 @@ public class ModifyTransactionDialog extends DialogFragment implements View.OnCl
 
     }
 
-    public interface ModifyTransactionDialogCommunicator {
-        void retrieveDataFromModifyTransactionDialog(int typeOfOperation);
-
+    public interface ModifyTransactionDialogCallback {
+        void modifyTransactionDialogCallback(ModifyTransactionDialogCallbackData modifyTransactionDialogCallbackData);
     }
 
     @Override

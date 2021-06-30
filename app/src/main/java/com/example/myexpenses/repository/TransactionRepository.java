@@ -167,7 +167,7 @@ public class TransactionRepository extends SQLiteOpenHelper {
         String chosenType = values[2];
         String chosenName = values[3];
         String chosenCategory = values[4];
-        String chosenOrder = values[5];
+        int chosenOrder = Integer.parseInt(values[5]);
 
         List<String> queryValues = new ArrayList<>();
         String queryParams = "";
@@ -203,19 +203,24 @@ public class TransactionRepository extends SQLiteOpenHelper {
 
         //transactions order
         switch (chosenOrder) {
-            case "By date (ascending)":
+            //by date (ascending)
+            case 1:
                 sortOrder = TRANSACTION_DATE + " ASC";
                 break;
-            case "By value (descending)":
+            //by value (descending)
+            case 2:
                 sortOrder = TRANSACTION_AMOUNT + " DESC";
                 break;
-            case "By value (ascending)":
+            //by value (ascending)
+            case 3:
                 sortOrder = TRANSACTION_AMOUNT + " ASC";
                 break;
-            case "By category (descending)":
+            //by category (descending)
+            case 4:
                 sortOrder = TRANSACTION_CATEGORY + " DESC";
                 break;
-            case "By category (ascending)":
+            //by category (ascending)
+            case 5:
                 sortOrder = TRANSACTION_CATEGORY + " ASC";
                 break;
             default:

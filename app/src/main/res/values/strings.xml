@@ -89,6 +89,12 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="settings_present_total_values">Present total values on pie chart</string>
     <string name="settings_pie_chart_animation">Show pie chart animation</string>
+    <string name="title_activity_view_pager_test">ViewPagerTestActivity</string>
+    <string name="graphic_summary">Graphic summary</string>
+    <string name="settings_empty_category">Use category name if notes empty</string>
+    <string name="settings_empty_note">Use category name if note is empty</string>
+    <string name="release_notes_text"><font color = '#4BA70A'>\nv1.0</font>\n\nFirst official version</string>
+
     <string-array name="list_of_expenses">
         <item>Food</item>
         <item>Car</item>
@@ -98,7 +104,6 @@
         <item>Hobby</item>
         <item>Other</item>
     </string-array>
-
     <string-array name="list_of_incomes">
         <item>Payment</item>
         <item>Gift</item>
@@ -127,7 +132,6 @@
         <item>Hobby</item>
         <item>Other</item>
     </string-array>
-    <!-- TODO: Remove or change this placeholder text -->
     <string-array name="filter_list_of_incomes">
         <item>All categories</item>
         <item>Payment</item>

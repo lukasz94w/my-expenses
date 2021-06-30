@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activity.ChartsActivity">
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+    <!--    android:fitsSystemWindows="true"-->
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="?attr/colorPrimary"
+            android:theme="@style/SearchViewStyle"
+            app:collapseIcon="@drawable/left_arrow_search"
+            app:popupTheme="@style/AppTheme" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+        <com.example.myexpenses.viewPager.CustomViewPager
+            android:layout_below="@id/navigationBar"
+            android:id="@+id/viewPager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <RelativeLayout
+            android:id="@+id/navigationBar"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_below="@id/appBarLayout"
+            android:background="@color/ColorPrimaryBright"
+            android:clickable="false">
+
+            <ImageButton
+                android:id="@+id/previousMonth"
+                android:layout_width="37dp"
+                android:layout_height="37dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="6.5dp"
+                android:background="@drawable/ripple_image_buttons"
+                android:clickable="true"
+                android:focusable="true"
+                android:src="@drawable/left_arrow" />
+
+            <ImageButton
+                android:id="@+id/nextMonth"
+                android:layout_width="37dp"
+                android:layout_height="37dp"
+                android:layout_gravity="center_vertical"
+                android:layout_marginTop="7dp"
+                android:layout_toEndOf="@id/currentChosenMonthAndYear"
+                android:background="@drawable/ripple_image_buttons"
+                android:clickable="true"
+                android:focusable="true"
+                android:src="@drawable/right_arrow" />
+
+            <ImageView
+                android:id="@+id/moneyIcon"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerInParent="true"
+                android:layout_gravity="center"
+                android:layout_marginEnd="5dp"
+                android:src="@drawable/money" />
+
+            <TextView
+                android:id="@+id/currentChosenMonthAndYear"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_toEndOf="@id/previousMonth"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/monthlyTransactionSum"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_toStartOf="@id/moneyIcon"
+                android:gravity="center_vertical"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+        </RelativeLayout>
+
+    </RelativeLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -1,13 +1,15 @@
 package com.example.myexpenses.fragment;
 
 import android.annotation.SuppressLint;
-import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
+import android.text.style.ForegroundColorSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -17,32 +19,36 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.myexpenses.R;
+import com.example.myexpenses.model.Transaction;
+import com.example.myexpenses.other.CurrentMonthData;
+import com.example.myexpenses.repository.TransactionRepository;
 import com.example.myexpenses.viewDrawer.AverageTransactionPerDayDrawer;
 import com.example.myexpenses.viewDrawer.BarChartDrawer;
 import com.example.myexpenses.viewDrawer.InnerPieChartDrawer;
 import com.example.myexpenses.viewDrawer.OuterPieChartDrawer;
-import com.example.myexpenses.model.Transaction;
-import com.example.myexpenses.repository.TransactionRepository;
+import com.github.mikephil.charting.charts.PieChart;
 
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static android.content.Context.MODE_PRIVATE;
 import static com.example.myexpenses.other.CurrencyConverter.getValueInCurrency;
 
-public class ChartsFragment extends Fragment implements View.OnClickListener {
+public class ChartsFragment extends Fragment {
 
     private TransactionRepository transactionRepository;
-    private TextView actualChosenMonth;
-    private TextView monthlyTransactionSum;
     private RelativeLayout chartContainer;
     private int currentChosenMonth;
     private int currentChosenYear;
-    private Calendar calendar;
-    private ScrollView chartScrollContainer;
     private TextView noDataText;
+
+    private SpannableStringBuilder formattedTotalSum;
+
+    private int actualMonth;
+    private int actualYear;
+
+    private int monthTransactionsSize;
 
     private final int idOfOuterPieChart = 1;
     private final int idOfAverageTransactionPerDay = 2;
@@ -52,20 +58,25 @@ public class ChartsFragment extends Fragment implements View.OnClickListener {
     private boolean sharedPrefShouldShowPieChartAnimation;
     private boolean sharedPrefShouldPresentTotalValues;
 
+    private PieChart outerPieChart;
+    private PieChart innerPieChart;
+
+    private ScrollView chartScrollContainer;
+
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         transactionRepository = new TransactionRepository(getContext());
-        calendar = Calendar.getInstance();
-        currentChosenMonth = calendar.get(Calendar.MONTH);
-        currentChosenYear = calendar.get(Calendar.YEAR);
 
-        SharedPreferences sharedPreferences = this.getActivity().getSharedPreferences("SharedPreferences", MODE_PRIVATE);
-        //default value if it not have been initialized yet
-        sharedPrefShouldShowIncomesBarCharts = sharedPreferences.getBoolean("Should show incomes bar charts", true);
-        sharedPrefShouldShowPieChartAnimation = sharedPreferences.getBoolean("Should show pie chart animation", true);
-        sharedPrefShouldPresentTotalValues = sharedPreferences.getBoolean("Should present total values on pie chart", false);
+        int monthOffset = getArguments().getInt("monthOffset");
+        actualMonth = getArguments().getInt("actualMonth");
+        actualYear = getArguments().getInt("actualYear");
+        sharedPrefShouldShowIncomesBarCharts = getArguments().getBoolean("sharedPrefShouldShowIncomesBarCharts");
+        sharedPrefShouldShowPieChartAnimation = getArguments().getBoolean("sharedPrefShouldShowPieChartAnimation");
+        sharedPrefShouldPresentTotalValues = getArguments().getBoolean("sharedPrefShouldPresentTotalValues");
+
+        calculateCurrentMonthAndYear(monthOffset);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
@@ -76,122 +87,76 @@ public class ChartsFragment extends Fragment implements View.OnClickListener {
         //onCreateView
         View view = inflater.inflate(R.layout.fragment_chart, container, false);
 
-        ImageButton previousMonth = view.findViewById(R.id.previousMonth);
-        previousMonth.setOnClickListener(this);
-
-        actualChosenMonth = view.findViewById(R.id.currentChosenMonthAndYear);
-
-        ImageButton nextMonth = view.findViewById(R.id.nextMonth);
-        nextMonth.setOnClickListener(this);
-
-        monthlyTransactionSum = view.findViewById(R.id.monthlyTransactionSum);
-
         chartContainer = view.findViewById(R.id.chartContainer);
         chartScrollContainer = view.findViewById(R.id.chartsScrollContainer);
 
         noDataText = view.findViewById(R.id.noDataText);
 
-        updateView("NO_ANIMATION");
+        updateChartData();
 
         return view;
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.N)
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.previousMonth: {
-                if (currentChosenMonth == 0) { //months are indexed starting from zero
-                    currentChosenMonth = 11;
-                    currentChosenYear--;
-                } else {
-                    currentChosenMonth--;
-                }
-                updateView("LEFT_TO_RIGHT_ANIMATION");
-                break;
-            }
-
-            case R.id.nextMonth: {
-                if (currentChosenMonth == 11) { //months are indexed starting from zero
-                    currentChosenMonth = 0;
-                    currentChosenYear++;
-                } else {
-                    currentChosenMonth++;
-                }
-                updateView("RIGHT_TO_LEFT_ANIMATION");
-                break;
-            }
-
-            default:
-                break;
-        }
-    }
-
     @SuppressLint("DefaultLocale")
     @RequiresApi(api = Build.VERSION_CODES.N)
-    private void updateView(String typeOfAnimation) {
+    private void updateChartData() {
+        Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.MONTH, currentChosenMonth);
         calendar.set(Calendar.YEAR, currentChosenYear);
         int numberOfDaysInMonth = calendar.getActualMaximum(Calendar.DAY_OF_MONTH);
 
         List<Transaction> monthTransactions = transactionRepository.findTransactionsInMonth(currentChosenMonth, currentChosenYear);
+        monthTransactionsSize = monthTransactions.size();
         int totalSum = monthTransactions.stream()
                 .mapToInt(Transaction::getAmount)
                 .sum();
 
-        actualChosenMonth.setText(convertMonthToString(currentChosenMonth + 1, currentChosenYear)); //months are indexed starting from zero
+        formattedTotalSum = new SpannableStringBuilder();
+        Spannable sumOfMonthlyTransactions;
         if (totalSum >= 0) {
-            monthlyTransactionSum.setText(String.format("+%.2f", getValueInCurrency(totalSum)));
-            monthlyTransactionSum.setTextColor(ContextCompat.getColor(requireContext(), R.color.sum_greater_than_zero));
+            sumOfMonthlyTransactions = new SpannableString(String.format("+%.2f", getValueInCurrency(totalSum)));
+            sumOfMonthlyTransactions.setSpan(new ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.sum_greater_than_zero)), 0, sumOfMonthlyTransactions.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         } else {
-            monthlyTransactionSum.setText(String.format("%.2f", getValueInCurrency(totalSum)));
-            monthlyTransactionSum.setTextColor(ContextCompat.getColor(requireContext(), R.color.sum_lesser_than_zero));
+            sumOfMonthlyTransactions = new SpannableString(String.format("%.2f", getValueInCurrency(totalSum)));
+            sumOfMonthlyTransactions.setSpan(new ForegroundColorSpan(ContextCompat.getColor(requireContext(), R.color.sum_lesser_than_zero)), 0, sumOfMonthlyTransactions.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         }
+        formattedTotalSum.append(sumOfMonthlyTransactions);
 
         chartContainer.removeAllViews();
 
-        if (monthTransactions.size() > 0) {
+        if (monthTransactionsSize > 0) {
             drawMonthlyTransactionOuterPieChart(monthTransactions);
             drawMonthlyTransactionInnerPieChart(monthTransactions);
             drawAverageTransactionPerDay(totalSum, numberOfDaysInMonth);
             drawMonthlyTransactionBarCharts(monthTransactions, numberOfDaysInMonth);
 
             noDataText.setVisibility(View.GONE);
-
-            chartScrollContainer.fullScroll(ScrollView.FOCUS_UP);
-            chartScrollContainer.smoothScrollTo(0, 0);
+//            chartScrollContainer.fullScroll(ScrollView.FOCUS_UP);
+//            chartScrollContainer.smoothScrollTo(0, 0);
         } else {
             noDataText.setVisibility(View.VISIBLE);
         }
+    }
 
-
-        switch (typeOfAnimation) {
-            case "NO_ANIMATION": {
-                break;
-            }
-//            case "RIGHT_TO_LEFT_ANIMATION": {
-//                chartContainer.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.right_to_left));
-//                break;
-//            }
-//            case "LEFT_TO_RIGHT_ANIMATION": {
-//                chartContainer.startAnimation(AnimationUtils.loadAnimation(getContext(), R.anim.left_to_right));
-//                break;
-//            }
-            default:
-                break;
-        }
-
+    @Override
+    public void onPause() {
+        super.onPause();
+        //when fragment is not visible scroll view to the top
+        chartScrollContainer.fullScroll(ScrollView.FOCUS_UP);
+        chartScrollContainer.smoothScrollTo(0, 0);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void drawMonthlyTransactionOuterPieChart(List<Transaction> monthTransactions) {
-        OuterPieChartDrawer outerPieChartDrawer = new OuterPieChartDrawer(getContext(), monthTransactions, idOfOuterPieChart, sharedPrefShouldShowPieChartAnimation, sharedPrefShouldPresentTotalValues);
-        chartContainer.addView(outerPieChartDrawer.getOuterPieChart());
+        OuterPieChartDrawer outerPieChartDrawer = new OuterPieChartDrawer(getContext(), monthTransactions, idOfOuterPieChart, sharedPrefShouldPresentTotalValues);
+        outerPieChart = outerPieChartDrawer.getOuterPieChart();
+        chartContainer.addView(outerPieChart);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.N)
     private void drawMonthlyTransactionInnerPieChart(List<Transaction> monthTransactions) {
-        InnerPieChartDrawer innerPieChartDrawer = new InnerPieChartDrawer(getContext(), monthTransactions, sharedPrefShouldShowPieChartAnimation, sharedPrefShouldPresentTotalValues);
+        InnerPieChartDrawer innerPieChartDrawer = new InnerPieChartDrawer(getContext(), monthTransactions, sharedPrefShouldPresentTotalValues);
+        innerPieChart = innerPieChartDrawer.getInnerPieChart();
         chartContainer.addView(innerPieChartDrawer.getInnerPieChart());
     }
 
@@ -224,16 +189,28 @@ public class ChartsFragment extends Fragment implements View.OnClickListener {
         }
     }
 
-    public String convertMonthToString(int month, int year) {
-        //months are indexed starting at 0
-        String MM = "" + month;
-        String yyyy = "" + year;
-
-        if (month < 10) {
-            MM = "0" + month;
+    private void calculateCurrentMonthAndYear(int monthOffset) {
+        if (actualMonth + monthOffset < 0) {
+            currentChosenYear = actualYear + ((actualMonth + monthOffset + 1) / 12 - 1);
+        } else {
+            currentChosenYear = actualYear + (actualMonth + monthOffset) / 12;
         }
 
-        return MM + "/" + yyyy;
+        currentChosenMonth = (actualMonth + monthOffset) % 12;
+        if (currentChosenMonth < 0) {
+            currentChosenMonth += 12;
+        }
+    }
+
+    public CurrentMonthData getDataFromChartsFragment() {
+        return new CurrentMonthData(currentChosenMonth, currentChosenYear, formattedTotalSum);
+    }
+
+    public void animateChart() {
+        if (monthTransactionsSize > 0 && sharedPrefShouldShowPieChartAnimation) {
+            outerPieChart.animateXY(750, 750);
+            innerPieChart.animateXY(750, 750);
+        }
     }
 }
 

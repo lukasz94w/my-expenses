@@ -17,7 +17,6 @@ import androidx.core.content.ContextCompat;
 
 import com.example.myexpenses.R;
 import com.example.myexpenses.model.Transaction;
-import com.example.myexpenses.other.CurrencyConverter;
 import com.example.myexpenses.valueFormatter.IntValueFormatter;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.XAxis;

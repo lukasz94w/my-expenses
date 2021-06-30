@@ -1,19 +1,20 @@
 package com.example.myexpenses.activity;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.NavUtils;
-
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.FragmentManager;
+
 import com.example.myexpenses.R;
+import com.example.myexpenses.dialogFragment.ReleaseNotesDialog;
 
 public class AboutActivity extends AppCompatActivity implements View.OnClickListener {
-
-    private Button contactWithAuthor, rateApp, releaseNotes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,11 +26,11 @@ public class AboutActivity extends AppCompatActivity implements View.OnClickList
         getSupportActionBar().setTitle(getResources().getString(R.string.about));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        contactWithAuthor = findViewById(R.id.contactWithAuthor);
+        Button contactWithAuthor = findViewById(R.id.contactWithAuthor);
         contactWithAuthor.setOnClickListener(this);
-        rateApp = findViewById(R.id.rateApp);
+        Button rateApp = findViewById(R.id.rateApp);
         rateApp.setOnClickListener(this);
-        releaseNotes = findViewById(R.id.releaseNotes);
+        Button releaseNotes = findViewById(R.id.releaseNotes);
         releaseNotes.setOnClickListener(this);
     }
 
@@ -37,9 +38,16 @@ public class AboutActivity extends AppCompatActivity implements View.OnClickList
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.contactWithAuthor:
-            case R.id.rateApp:
+            case R.id.rateApp: {
+                Toast.makeText(this, "Function not implemented yet", Toast.LENGTH_SHORT).show();
+                break;
+            }
             case R.id.releaseNotes: {
-                Toast.makeText(AboutActivity.this, "Function is not implemented yet", Toast.LENGTH_SHORT).show();
+
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                ReleaseNotesDialog releaseNotesDialog = new ReleaseNotesDialog();
+                releaseNotesDialog.show(fragmentManager, "ReleaseNotesDialog");
+
                 break;
             }
             default:
@@ -47,11 +55,12 @@ public class AboutActivity extends AppCompatActivity implements View.OnClickList
         }
     }
 
-    //prevent left checked icon on navigation drawer and also clear filters f.e.
     @Override
-    public void onBackPressed() {
-        //super.onBackPressed();
-        NavUtils.navigateUpFromSameTask(this);
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            super.onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
-
 }

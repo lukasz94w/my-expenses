@@ -20,39 +20,47 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MainActivity"
+            android:name=".activity.ListTransactionsActivity"
             android:label="My finances"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme"
             android:windowSoftInputMode="adjustPan" />
         <activity
+            android:name=".activity.ChartsActivity"
+            android:label="ChartsActivity"
+            android:parentActivityName=".activity.ListTransactionsActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme"/>
+        <activity
             android:name=".activity.AboutActivity"
             android:label="AboutActivity"
+            android:parentActivityName=".activity.ListTransactionsActivity"
             android:screenOrientation="portrait"
-            android:parentActivityName=".MainActivity"
             android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.SettingsActivity"
             android:label="SettingsActivity"
+            android:parentActivityName=".activity.ListTransactionsActivity"
             android:screenOrientation="portrait"
-            android:parentActivityName=".MainActivity"
             android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.LimitsActivity"
             android:label="@string/title_activity_limits"
+            android:parentActivityName=".activity.ListTransactionsActivity"
             android:screenOrientation="portrait"
-            android:parentActivityName=".MainActivity"
             android:theme="@style/AppTheme" />
         <activity
             android:name=".activity.ExportActivity"
             android:label="ExportActivity"
+            android:parentActivityName=".activity.ListTransactionsActivity"
             android:screenOrientation="portrait"
-            android:parentActivityName=".MainActivity"
             android:theme="@style/AppTheme" />
     </application>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="28" />
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
 
 </manifest>

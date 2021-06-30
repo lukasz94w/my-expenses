@@ -157,7 +157,7 @@ public class Transaction implements Comparable<Transaction>, Item, Serializable 
 
         String transactionName = this.name;
         int lengthOfTransactionName = transactionName.length();
-        if (lengthOfTransactionName >= 19) {
+        if (lengthOfTransactionName >= 24) {
             int lengthOfTransactionAmount = String.valueOf(transactionAmount).length();
             if (transactionAmount > 0) {
                 lengthOfTransactionAmount = lengthOfTransactionAmount + 2; //situation when '+' is added

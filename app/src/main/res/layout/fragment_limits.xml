@@ -1,219 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".fragment.LimitsFragment">
 
     <RelativeLayout
-        android:id="@+id/navigationBar"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:clickable="false"
-        android:background="@color/ColorPrimaryBright">
-
-        <ImageButton
-            android:id="@+id/previousMonth"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_gravity="center_vertical"
-            android:layout_marginStart="5dp"
-            android:clickable="true"
-            android:background="@android:color/transparent"
-            android:src="@drawable/left_arrow"
-            android:focusable="true" />
-
-        <TextView
-            android:id="@+id/currentChosenMonthAndYear"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_toEndOf="@id/previousMonth"
-            android:textSize="18sp" />
-
-        <ImageButton
-            android:id="@+id/nextMonth"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_gravity="center_vertical"
-            android:layout_toEndOf="@id/currentChosenMonthAndYear"
-            android:background="@android:color/transparent"
-            android:clickable="true"
-            android:src="@drawable/right_arrow"
-            android:focusable="true" />
-
-    </RelativeLayout>
-
-    <Button
-        android:id="@+id/setDailyAndMonthlyLimit"
-        android:layout_width="match_parent"
-        android:layout_height="37dp"
-        android:layout_below="@+id/monthlyLimitLeft"
-        android:layout_centerInParent="true"
-        android:layout_marginStart="17dp"
-        android:layout_marginTop="4dp"
-        android:layout_marginEnd="11dp"
-        android:background="@drawable/set_limit_rounded_button"
-        android:text="@string/set_limits_button"
-        android:textSize="21sp" />
-
-    <TextView
-        android:id="@+id/dailyLimit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_marginStart="14dp"
-        android:layout_marginTop="5dp"
-        android:text="@string/daily_limit"
-        android:layout_below="@id/navigationBar"
-        android:textColor="@color/black"
-        android:textSize="21sp" />
-
-    <TextView
-        android:id="@+id/dailyLimitSet"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/dailyLimit"
-        android:layout_alignParentStart="true"
-        android:layout_marginStart="14dp"
-        android:layout_marginTop="3dp"
-        android:text="@string/daily_limit_set"
-        android:textSize="18sp" />
-
-    <ImageView
-        android:id="@+id/dailyLimitSetAmountIcon"
-        android:layout_below="@id/dailyLimit"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="10dp"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:background="@android:color/transparent"
-        android:src="@drawable/money"/>
-
-    <TextView
-        android:id="@+id/dailyLimitSetAmount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/dailyLimit"
-        android:layout_toStartOf="@id/dailyLimitSetAmountIcon"
-        android:layout_marginTop="3dp"
-        android:textStyle="bold"
-        android:textSize="18sp" />
-
-    <TextView
-        android:id="@+id/dailyLimitLeft"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/dailyLimitSet"
-        android:layout_alignParentStart="true"
-        android:layout_marginStart="14dp"
-        android:layout_marginTop="3dp"
-        android:text="@string/daily_limit_left"
-        android:textSize="18sp" />
-
-    <ImageView
-        android:id="@+id/dailyLimitLeftAmountIcon"
-        android:layout_below="@id/dailyLimitSet"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="10dp"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:background="@android:color/transparent"
-        android:src="@drawable/money"/>
-
-    <TextView
-        android:id="@+id/dailyLimitLeftAmount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/dailyLimitSet"
-        android:layout_marginTop="3dp"
-        android:layout_toStartOf="@id/dailyLimitLeftAmountIcon"
-        android:textStyle="bold"
-        android:textSize="18sp" />
-
-    <TextView
-        android:id="@+id/monthlyLimit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/dailyLimitLeft"
-        android:layout_alignParentStart="true"
-        android:layout_marginStart="14dp"
-        android:layout_marginTop="5dp"
-        android:text="@string/monthly_limit"
-        android:textColor="@color/black"
-        android:textSize="21sp" />
-
-    <TextView
-        android:id="@+id/monthlyLimitSet"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/monthlyLimit"
-        android:layout_alignParentStart="true"
-        android:layout_marginStart="14dp"
-        android:layout_marginTop="3dp"
-        android:text="@string/monthly_limit_set"
-        android:textSize="18sp" />
-
-    <ImageView
-        android:id="@+id/monthlyLimitSetAmountIcon"
-        android:layout_below="@id/monthlyLimit"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="10dp"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:background="@android:color/transparent"
-        android:src="@drawable/money"/>
-
-    <TextView
-        android:id="@+id/monthlyLimitSetAmount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/monthlyLimit"
-        android:layout_toStartOf="@id/monthlyLimitSetAmountIcon"
-        android:layout_marginTop="3dp"
-        android:textStyle="bold"
-        android:textSize="18sp" />
-
-    <TextView
-        android:id="@+id/monthlyLimitLeft"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/monthlyLimitSet"
-        android:layout_alignParentStart="true"
-        android:layout_marginStart="14dp"
-        android:layout_marginTop="3dp"
-        android:text="@string/monthly_limit_left"
-        android:textSize="18sp" />
-
-    <ImageView
-        android:id="@+id/monthlyLimitLeftAmountIcon"
-        android:layout_below="@id/monthlyLimitSet"
-        android:layout_alignParentEnd="true"
-        android:layout_marginEnd="10dp"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:background="@android:color/transparent"
-        android:src="@drawable/money"/>
-
-    <TextView
-        android:id="@+id/monthlyLimitLeftAmount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/monthlyLimitSet"
-        android:layout_toStartOf="@id/monthlyLimitLeftAmountIcon"
-        android:layout_marginTop="3dp"
-        android:textStyle="bold"
-        android:textSize="18sp" />
+        android:layout_height="match_parent">
 
     <View
         android:id="@+id/separator"
         android:layout_width="match_parent"
         android:layout_marginLeft="7dp"
         android:layout_marginRight="7dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="5dp"
-        android:layout_below="@id/setDailyAndMonthlyLimit"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="7dp"
         android:layout_height="1dp"
         android:background="@color/separator_color"/>
 
@@ -221,8 +23,8 @@
         android:id="@+id/expenseIcon"
         android:layout_below="@id/separator"
         android:layout_marginStart="10dp"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
         android:background="@android:color/transparent"
         android:src="@drawable/expense"/>
 
@@ -230,8 +32,9 @@
         android:id="@+id/expenseText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="7dp"
         android:layout_marginTop="8dp"
-        android:textSize="15.5sp"
+        android:textSize="18sp"
         android:text="@string/monthly_expenses"
         android:layout_below="@id/separator"
         android:layout_toEndOf="@id/expenseIcon"/>
@@ -241,9 +44,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/separator"
-        android:layout_marginTop="7dp"
+        android:layout_marginTop="5dp"
         android:textStyle="bold"
-        android:textSize="17.5sp"
+        android:textSize="20sp"
         android:layout_toStartOf="@id/expenseTotalSumIcon"/>
 
     <ImageView
@@ -251,7 +54,7 @@
         android:layout_alignParentEnd="true"
         android:layout_width="28dp"
         android:layout_height="28dp"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="5dp"
         android:layout_marginEnd="10dp"
         android:background="@android:color/transparent"
         android:layout_below="@id/separator"
@@ -262,7 +65,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="13dp"
-        android:textSize="14sp"
+        android:layout_marginTop="3dp"
+        android:textSize="15sp"
         android:layout_below="@id/expenseIcon"/>
 
     <com.github.mikephil.charting.charts.BarChart
@@ -270,7 +74,9 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="5dp"
         android:layout_width="370dp"
-        android:layout_height="180dp"
+        android:layout_height="200dp"
         android:layout_below="@id/expenseMonthlyAverage"/>
 
-</RelativeLayout>
+    </RelativeLayout>
+
+</FrameLayout>
