@@ -7,4 +7,4 @@ The program allows, inter alia, to:
 - filtering expenses according to the mentioned categories or, for example, sorting them by date,
 - setting limits (when they are exceeded, appropriate warning messages will appear),
 - viewing transactions in the form of pie charts or bar charts,
-- export of operations to a .csv file.
+- export of operations to a CSV file.
