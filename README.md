@@ -9,7 +9,7 @@ The program allows, inter alia, to:
 - setting limits (when they are exceeded, appropriate warning messages will appear),
 - viewing transactions in the form of pie charts or bar charts,
 - export of operations to a CSV file.
-- 
+
 Below are the screenshots of the application where it can be noticed some of the listed functionalities:
 
 ![1st_row](https://user-images.githubusercontent.com/53697813/160177812-59082bd7-f9a4-4fbc-ac86-9ca42feece5c.jpg)
