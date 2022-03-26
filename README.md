@@ -10,6 +10,14 @@ The program allows, inter alia, to:
 - viewing transactions in the form of pie charts or bar charts,
 - export of operations to a CSV file.
 
+Technologies / libraries used:
+- Android
+- Java
+- SQLite
+- MPAndroidChart
+- Gradle
+- XML
+
 Below are the screenshots of the application where it can be noticed some of the listed functionalities:
 
 ![1st_row](https://user-images.githubusercontent.com/53697813/160177812-59082bd7-f9a4-4fbc-ac86-9ca42feece5c.jpg)
