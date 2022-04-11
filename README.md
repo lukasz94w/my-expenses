@@ -27,3 +27,8 @@ Below are the screenshots of the application where it can be noticed some of the
 ![3rd_row](https://user-images.githubusercontent.com/53697813/160178936-431179da-ac15-44bc-a4ad-a19d9e9f9516.jpg)
 
 ![4th_row](https://user-images.githubusercontent.com/53697813/160179321-55435301-20e6-4958-beef-e06d41fd2322.jpg)
+
+## Improvements
+The following fixes can be made to the application code:
+- refactor it by moving redundant code to methods (there is some boilerplate code),
+- fix the error that occurs when you try to add an expense in a different month than the one currently viewed, for example, when viewing expenses from April and trying to add an expense in March, an error will occur and the application will be closed.
